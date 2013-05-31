@@ -73,6 +73,9 @@ def main():
     parser.add_option("--results", dest="results_file",
                       help="Results file name.",
                       type="string", default="results.dat")
+    parser.add_option("--plot-file", dest="plot_file",
+                      help="File containing the plot.",
+                      type="string", default="plot.dat")
 
     (options, args) = parser.parse_args()
 
