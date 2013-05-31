@@ -160,6 +160,9 @@ def main_controller(options, args):
         best_job = np.argmin(values)
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
 
+    # TODO: decide exactly which grid we want to evaluate on rather than whole
+    # hypercube ?
+
     # Now lets get the next job to run
     # First throw out a set of candidates on the unit hypercube
     # Increment by the number of observed so we don't take the
@@ -180,10 +183,23 @@ def main_controller(options, args):
     grid_idx = np.hstack((np.zeros(complete.shape[0]),
                           np.ones(candidates.shape[0]),
                           1.+np.ones(pending.shape[0])))
-    job_id = chooser.next(grid, np.squeeze(values), durations,
+
+    # Compute on the grid as it is passed
+    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
                           np.nonzero(grid_idx == 1)[0],
                           np.nonzero(grid_idx == 2)[0],
                           np.nonzero(grid_idx == 0)[0])
+
+    # TODO: save the output in a format that will be easy to plot
+    print('Grid is')
+    print(grid)
+    
+    print('Mean is')
+    print(plot_mean)
+
+    print('Variance is')
+    print(plot_variance)
+    return 1
     
     # If the job_id is a tuple, then the chooser picked a new job not from
     # the candidate list
@@ -206,7 +222,7 @@ def main_controller(options, args):
         output = output + str(p) + " "
         
     output = "P P " + output + "\n"
-    outfile = open(res_file,"a")
+    outfile = open(plot_file,"a")
     outfile.write(output)
     outfile.close()        
 
