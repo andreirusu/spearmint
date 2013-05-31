@@ -711,4 +711,4 @@ class GPEIOptChooser:
         func_m = np.dot(cand_cross.T, alpha) + self.mean
         func_v = self.amp2*(1+1e-6) - np.sum(beta**2, axis=0)
 
-        return func_m, func_v
+        return (func_m, func_v)
