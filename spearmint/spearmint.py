@@ -84,9 +84,6 @@ def main():
     parser.add_option("--wrapper", dest="wrapper",
                       help="Run in job-wrapper mode.",
                       action="store_true")
-    parser.add_option("--polling-time", dest="polling_time",
-                      help="The time in-between successive polls for results.",
-                      type="float", default=3.0)
 
     (options, args) = parser.parse_args()
 
@@ -125,7 +122,7 @@ def main_wrapper(options, args):
     try:
         if job.language == MATLAB:
             # Run it as a Matlab function.
-            function_call = "matlab_wrapper('%s'),quit;" % (job_file)
+            function_call = "matlab_wrapper('%s'), quit;" % (job_file)
             matlab_cmd    = 'matlab -nosplash -nodesktop -r "%s"' % (function_call)
             sys.stderr.write(matlab_cmd + "\n")
             os.system(matlab_cmd)
@@ -257,10 +254,7 @@ def main_controller(options, args):
     # Loop until we run out of jobs.
     while True:
         attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
-        # This is polling frequency. A higher frequency means that the algorithm
-        # picks up results more quickly after they finish, but also significantly 
-        # increases overhead.
-        time.sleep(options.polling_time)
+        time.sleep(1)
  
 def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     import drmaa
@@ -471,13 +465,15 @@ def sge_submit(name, output_file, modules, job_file, working_dir):
 #$ -e "%s"
 #$ -o "%s"
 #$ -wd "%s"
+#$ -q torch.q
+#$ -cwd
 
 # Set up the environment
 . /etc/profile
 . ~/.profile
 
 # Make sure we have various modules.
-module load %s
+# module load %s
 
 # Spin off ourselves as a wrapper script.
 exec python2.7 spearmint.py --wrapper "%s"
