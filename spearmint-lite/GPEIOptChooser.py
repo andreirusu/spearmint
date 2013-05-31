@@ -668,3 +668,30 @@ class GPEIOptChooser:
         self.dump_hypers()
         
         return
+
+    def compute_marginal(self, comp, cand, vals):        
+        # Assume there are no pending, don't do anything fancy.            
+        # comp = points at which evaluation already took place
+        # vals = values of the function at comp
+        # cand = candidate points, e.g. grid on which to evaluate the mean and variance
+
+        # Current best.
+        best = np.min(vals)
+
+        # The primary covariances for prediction.
+        comp_cov   = self.cov(comp)
+        cand_cross = self.cov(comp, cand)
+
+        # Compute the required Cholesky.
+        obsv_cov  = comp_cov + self.noise*np.eye(comp.shape[0])
+        obsv_chol = spla.cholesky( obsv_cov, lower=True )
+
+        # Solve the linear systems.
+        alpha  = spla.cho_solve((obsv_chol, True), vals - self.mean)
+        beta   = spla.solve_triangular(obsv_chol, cand_cross, lower=True)
+
+        # Predict the marginal means and variances at candidates.
+        func_m = np.dot(cand_cross.T, alpha) + self.mean
+        func_v = self.amp2*(1+1e-6) - np.sum(beta**2, axis=0)
+
+        return func_m, func_v
