@@ -295,7 +295,7 @@ class GPEIOptChooser:
                          % (self.mean, np.sqrt(self.amp2), self.noise,
                             np.min(self.ls), np.max(self.ls)))
 
-        return self.compute_marginal(comp, pend, cand, vals)
+        return self.compute_marginal(comp, cand, vals)
 
     # Compute EI over hyperparameter samples
     def ei_over_hypers(self,comp,pend,cand,vals):
