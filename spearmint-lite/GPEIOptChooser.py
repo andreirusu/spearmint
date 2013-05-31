@@ -164,6 +164,122 @@ class GPEIOptChooser:
             return self.amp2 * self.cov_func(self.ls, x1, x2)
 
     # Given a set of completed 'experiments' in the unit hypercube with
+    # corresponding objective 'values', evaluate the GP mean and variance at the 
+    # candidate points
+    def plot(self, grid, values, durations,
+             candidates, pending, complete):
+
+        # Don't bother using fancy GP stuff at first.
+        if complete.shape[0] < 2:
+            return int(candidates[0])
+
+        # Perform the real initialization.
+        if self.D == -1:
+            self._real_init(grid.shape[1], values[complete])
+    
+        # Grab out the relevant sets.
+        comp = grid[complete,:]
+        cand = grid[candidates,:]
+        pend = grid[pending,:]
+        vals = values[complete]
+        numcand = cand.shape[0]
+
+        # Spray a set of candidates around the min so far
+        best_comp = np.argmin(vals)
+        cand2 = np.vstack((np.random.randn(10,comp.shape[1])*0.001 + 
+                           comp[best_comp,:], cand))
+
+        if self.mcmc_iters > 0:
+
+            # Possibly burn in.
+            if self.needs_burnin:
+                for mcmc_iter in xrange(self.burnin):
+                    self.sample_hypers(comp, vals)
+                    sys.stderr.write("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f\n"
+                                     % (mcmc_iter+1, self.burnin, self.mean, 
+                                        np.sqrt(self.amp2), self.noise, 
+                                        np.min(self.ls), np.max(self.ls)))
+                self.needs_burnin = False
+
+            # Sample from hyperparameters.
+            # Adjust the candidates to hit ei peaks
+            self.hyper_samples = []
+            for mcmc_iter in xrange(self.mcmc_iters):
+                self.sample_hypers(comp, vals)
+                sys.stderr.write("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
+                                 "min_ls: %.4f  max_ls: %.4f\n"
+                                 % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                                    np.sqrt(self.amp2), self.noise,
+                                    np.min(self.ls), np.max(self.ls)))            
+            self.dump_hypers()
+
+            b = []# optimization bounds
+            for i in xrange(0, cand.shape[1]):
+                b.append((0, 1))
+                    
+            overall_ei = self.ei_over_hypers(comp,pend,cand2,vals)
+            inds = np.argsort(np.mean(overall_ei,axis=1))[-self.grid_subset:]
+            cand2 = cand2[inds,:]
+
+            # This is old code to optimize each point in parallel. Uncomment
+            # and replace if multiprocessing doesn't work
+            #for i in xrange(0, cand2.shape[0]):
+            #    sys.stderr.write("Optimizing candidate %d/%d\n" %
+            #                     (i+1, cand2.shape[0]))
+            #self.check_grad_ei(cand2[i,:].flatten(), comp, pend, vals)
+            #    ret = spo.fmin_l_bfgs_b(self.grad_optimize_ei_over_hypers,
+            #                            cand2[i,:].flatten(), args=(comp,pend,vals),
+            #                            bounds=b, disp=0)
+            #    cand2[i,:] = ret[0]
+
+            #cand = np.vstack((cand, cand2))
+
+            # Optimize each point in parallel
+            pool = multiprocessing.Pool(self.grid_subset)
+            results = [pool.apply_async(optimize_pt,args=(
+                        c,b,comp,pend,vals,copy.copy(self))) for c in cand2]
+            for res in results:
+                cand = np.vstack((cand, res.get(1e8)))
+            pool.close()
+            
+            overall_ei = self.ei_over_hypers(comp,pend,cand,vals)
+            best_cand = np.argmax(np.mean(overall_ei, axis=1))
+            
+            if (best_cand >= numcand):
+                return (int(numcand), cand[best_cand,:])
+
+            return int(candidates[best_cand])
+
+        else:
+            # Optimize hyperparameters
+            self.optimize_hypers(comp, vals)
+
+            sys.stderr.write("mean: %.2f  amp: %.2f  noise: %.4f  "
+                             "min_ls: %.4f  max_ls: %.4f\n"
+                             % (self.mean, np.sqrt(self.amp2), self.noise,
+                                np.min(self.ls), np.max(self.ls)))
+
+            # Optimize over EI
+            b = []# optimization bounds                                        
+            for i in xrange(0, cand.shape[1]):
+                b.append((0, 1))
+
+            for i in xrange(0, cand2.shape[0]):
+                ret = spo.fmin_l_bfgs_b(self.grad_optimize_ei,
+                                        cand2[i,:].flatten(), args=(comp,vals,True),
+                                        bounds=b, disp=0)
+                cand2[i,:] = ret[0]
+            cand = np.vstack((cand, cand2))
+
+            ei = self.compute_ei(comp, pend, cand, vals)
+            best_cand = np.argmax(ei)
+
+            if (best_cand >= numcand):
+                return (int(numcand), cand[best_cand,:])
+
+            return int(candidates[best_cand])
+    # Given a set of completed 'experiments' in the unit hypercube with
     # corresponding objective 'values', pick from the next experiment to
     # run according to the acquisition function.
     def next(self, grid, values, durations,
