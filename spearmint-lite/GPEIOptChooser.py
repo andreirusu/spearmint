@@ -166,7 +166,7 @@ class GPEIOptChooser:
     # Given a set of completed 'experiments' in the unit hypercube with
     # corresponding objective 'values', evaluate the GP mean and variance at the
     # candidate points
-    def plot(self, grid, values, durations,
+    def next(self, grid, values, durations,
              candidates, pending, complete):
 
         # Don't bother using fancy GP stuff at first.
@@ -272,7 +272,7 @@ class GPEIOptChooser:
     # Given a set of completed 'experiments' in the unit hypercube with
     # corresponding objective 'values', pick from the next experiment to
     # run according to the acquisition function.
-    def next(self, grid, values, durations,
+    def plot(self, grid, values, durations,
              candidates, pending, complete):
 
         # Don't bother using fancy GP stuff at first.
