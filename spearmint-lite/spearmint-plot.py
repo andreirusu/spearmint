@@ -188,7 +188,6 @@ def main_controller(options, args):
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
-        print(v)
         dim = v['size']
         if dim > 1:
             for i in range(1,dim+1):
