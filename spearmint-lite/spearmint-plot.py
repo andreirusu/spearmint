@@ -79,7 +79,19 @@ def main():
 
     # Otherwise run in controller mode.
     main_controller(options, args)
-    
+
+# Compute a grid on the 1D slice containing
+# point v and along dimensions dim
+def slice_1d(v, dim, grid_size):
+    vrep = v.repeat(grid_size, 0)
+
+    left = vrep[:, 0:dim].reshape(grid_size, dim-1)
+    right = vrep[:, dim+1:].reshape(grid_size, v.shape[1]-dim-1)
+
+    x = np.linspace(0, 1, grid_size).reshape(grid_size, 1)
+
+    return (x, np.hstack((left, x, right)))
+
 ##############################################################################
 ##############################################################################
 def main_controller(options, args):
@@ -157,6 +169,35 @@ def main_controller(options, args):
         best_val = np.min(values)
         best_job = np.argmin(values)
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
+
+    # Evaluate on the marginal slice containing the best fit
+    best_complete = complete[best_job]
+    x, candidates = slice_1d(best_complete, 0, options.grid_size)
+
+    # Ask the choose to compute the GP on this grid
+    # First mash the data into a format that matches that of the other
+    # spearmint drivers to pass to the chooser modules.        
+    grid = candidates
+    if (complete.shape[0] > 0):
+        grid = np.vstack((complete, candidates))
+    if (pending.shape[0] > 0):
+        grid = np.vstack((grid, pending))
+    grid = np.asarray(grid)
+    grid_idx = np.hstack((np.zeros(complete.shape[0]),
+                          np.ones(candidates.shape[0]),
+                          1.+np.ones(pending.shape[0])))
+
+    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
+                         np.nonzero(grid_idx == 1)[0],
+                         np.nonzero(grid_idx == 2)[0],
+                         np.nonzero(grid_idx == 0)[0])
+
+    pplt.plot(x, plot_mean)
+    pplt.plot(x, plot_mean+plot_variance)
+    pplt.plot(x, plot_mean-plot_variance)
+    pplt.plot(x, plot_mean+np.sqrt(plot_variance))
+    pplt.plot(x, plot_mean-np.sqrt(plot_variance))
+    pplt.show()
 
     # Now let's evaluate the GP on a grid
     x = np.linspace(0,1,options.grid_size)
