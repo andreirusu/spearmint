@@ -164,8 +164,8 @@ class GPEIOptChooser:
             return self.amp2 * self.cov_func(self.ls, x1, x2)
 
     # Given a set of completed 'experiments' in the unit hypercube with
-    # corresponding objective 'values', evaluate the GP mean and variance at the
-    # candidate points
+    # corresponding objective 'values', pick from the next experiment to
+    # run according to the acquisition function.
     def next(self, grid, values, durations,
              candidates, pending, complete):
 
@@ -270,8 +270,8 @@ class GPEIOptChooser:
             return int(candidates[best_cand])
 
     # Given a set of completed 'experiments' in the unit hypercube with
-    # corresponding objective 'values', pick from the next experiment to
-    # run according to the acquisition function.
+    # corresponding objective 'values', evaluate the GP mean and variance at the
+    # candidate points
     def plot(self, grid, values, durations,
              candidates, pending, complete):
 
