@@ -92,6 +92,26 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
+# Compute a grid on the 1D slice containing
+# and along dimensions  dim1 and dim2
+def slice_2d(v, dim1, dim2, side_size):
+    square_size = side_size * side_size
+
+    vrep = v.repeat(square_size, 0)
+
+    left = vrep[:, 0:dim1].reshape(square_size, dim1-1)
+    middle = vrep[:, dim1+1:dim2].reshape(square_size, dim2-dim1-1)
+    right = vrep[:, dim2+1:].reshape(square_size, v.shape[1]-dim2-1)
+
+    x = np.linspace(0, 1, side_size)
+    y = np.linspace(0, 1, side_size)
+
+    xx, yy = np.meshgrid(x, y)
+    xxcol = xx.reshape(square_size, 1)
+    yycol = yy.reshape(square_size, 1)
+
+    return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
+
 ##############################################################################
 ##############################################################################
 def main_controller(options, args):
@@ -171,7 +191,7 @@ def main_controller(options, args):
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
 
     # Evaluate on the marginal slice containing the best fit
-    best_complete = complete[best_job]
+    best_complete = complete[best_job,:]
     x, candidates = slice_1d(best_complete, 0, options.grid_size)
 
     # Ask the choose to compute the GP on this grid
@@ -193,18 +213,15 @@ def main_controller(options, args):
                          np.nonzero(grid_idx == 0)[0])
 
     pplt.plot(x, plot_mean)
-    pplt.plot(x, plot_mean+plot_variance)
-    pplt.plot(x, plot_mean-plot_variance)
     pplt.plot(x, plot_mean+np.sqrt(plot_variance))
     pplt.plot(x, plot_mean-np.sqrt(plot_variance))
     pplt.show()
 
     # Now let's evaluate the GP on a grid
-    x = np.linspace(0,1,options.grid_size)
-    y = np.linspace(0,1,options.grid_size)
-    xx, yy = np.meshgrid(x, y)
-    candidates = np.hstack((xx.reshape(-1,1),
-                            yy.reshape(-1,1)))
+    x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
+    print('x is ' , type(x))
+    print('y is ' , type(y))
+    print('candidates is ' , type(candidates))
 
     # Ask the choose to compute the GP on this grid
     # First mash the data into a format that matches that of the other
@@ -224,9 +241,11 @@ def main_controller(options, args):
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
 
-    pplt.pcolor(x, y, plot_mean.reshape(y.shape[0], x.shape[0]))
+    pplt.pcolor(x, y, plot_mean.reshape(options.grid_size,
+                                        options.grid_size))
     pplt.show()
-    pplt.pcolor(x, y, plot_variance.reshape(y.shape[0], x.shape[0]))
+    pplt.pcolor(x, y, plot_variance.reshape(options.grid_size,
+                                            options.grid_size))
     pplt.show()
 
     # Now lets write this evaluation to the CSV plot file
@@ -241,6 +260,7 @@ def main_controller(options, args):
 
     output = output + "Mean,Variance\n"
 
+    candidates = np.asarray(candidates)
     for i in range(0,candidates.shape[0]):
         params = gmap.unit_to_list(candidates[i,:])
         for p in params:
