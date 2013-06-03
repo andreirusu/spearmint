@@ -189,6 +189,17 @@ def main_controller(options, args):
 
     # Now lets write this evaluation to the CSV plot file
     output = ""
+    for v in gmap.variables:
+        print(v)
+        dim = v['size']
+        if dim > 1:
+            for i in range(1,dim+1):
+                output = output + str(v['name']) + "_" + str(i) + ","
+        else:
+            output = output + str(v['name']) + ","
+
+    output = output + "Mean,Variance\n"
+
     for i in range(0,candidates.shape[0]):
         params = gmap.unit_to_list(candidates[i,:])
         for p in params:
