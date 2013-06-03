@@ -29,6 +29,9 @@ import os
 import re
 import collections
 
+import matplotlib as plt
+import matplotlib.pyplot as pplt
+
 from ExperimentGrid  import *
 try: import simplejson as json
 except ImportError: import json
@@ -61,12 +64,6 @@ def main():
     parser.add_option("--method-args", dest="chooser_args",
                       help="Arguments to pass to chooser module.",
                       type="string", default="")
-    parser.add_option("--grid-size", dest="grid_size",
-                      help="Number of experiments in initial grid.",
-                      type="int", default=1000)
-    parser.add_option("--grid-seed", dest="grid_seed",
-                      help="The seed used to initialize initial grid.",
-                      type="int", default=1)
     parser.add_option("--config", dest="config_file",
                       help="Configuration file name.",
                       type="string", default="config.json")
@@ -105,7 +102,7 @@ def main_controller(options, args):
     #@gdahl - added the following three lines and commented out the line above
     vkeys = [k for k in variables]
     #vkeys.sort()
-    gmap = GridMap([variables[k] for k in vkeys], options.grid_size)
+    gmap = GridMap([variables[k] for k in vkeys], 1)
 
     res_file = os.path.join(expt_dir, options.results_file)
     if not os.path.exists(res_file):
@@ -160,18 +157,14 @@ def main_controller(options, args):
         best_job = np.argmin(values)
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
 
-    # TODO: decide exactly which grid we want to evaluate on rather than whole
-    # hypercube ?
+    # Now let's evaluate the GP on a grid
+    x = np.linspace(0,1,100)
+    y = np.linspace(0,1,100)
+    xx, yy = np.meshgrid(x, y)
+    candidates = np.hstack((xx.reshape(-1,1),
+                            yy.reshape(-1,1)))
 
-    # Now lets get the next job to run
-    # First throw out a set of candidates on the unit hypercube
-    # Increment by the number of observed so we don't take the
-    # same values twice
-    off = pending.shape[0] + complete.shape[0]
-    candidates = gmap.hypercube_grid(options.grid_size,
-                                     options.grid_seed+off)
-
-    # Ask the chooser to actually pick one.
+    # Ask the choose to compute the GP on this grid
     # First mash the data into a format that matches that of the other
     # spearmint drivers to pass to the chooser modules.        
     grid = candidates
@@ -184,21 +177,18 @@ def main_controller(options, args):
                           np.ones(candidates.shape[0]),
                           1.+np.ones(pending.shape[0])))
 
-    # Compute on the grid as it is passed
     plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
-                          np.nonzero(grid_idx == 1)[0],
-                          np.nonzero(grid_idx == 2)[0],
-                          np.nonzero(grid_idx == 0)[0])
+                         np.nonzero(grid_idx == 1)[0],
+                         np.nonzero(grid_idx == 2)[0],
+                         np.nonzero(grid_idx == 0)[0])
 
-    # TODO: save the output in a format that will be easy to plot
-    print('Grid is')
-    print(grid)
-    
-    print('Mean is')
-    print(plot_mean)
+    plot_mean = plot_mean.reshape(y.shape[0], x.shape[0])
+    plot_variance = plot_variance.reshape(y.shape[0], x.shape[0])
 
-    print('Variance is')
-    print(plot_variance)
+    pplt.pcolor(x, y, plot_mean)
+    pplt.show()
+    pplt.pcolor(x, y, plot_variance)
+    pplt.show()
     return 1
     
     # If the job_id is a tuple, then the chooser picked a new job not from
