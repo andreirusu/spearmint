@@ -112,6 +112,27 @@ def slice_2d(v, dim1, dim2, side_size):
 
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
+def plot_2d(x, y, mean, variance):
+    pplt.figure()
+    pplt.subplot(121)
+    h_mean = pplt.pcolormesh(x, y, 
+                             mean.reshape(x.shape[0], y.shape[0]))
+    pplt.colorbar(h_mean)
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$X_2$')
+    pplt.title(r'Mean, slice $(X_1, X_2)$ at best')
+
+    pplt.subplot(122)
+    h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
+                                                   y.shape[0]))
+    pplt.colorbar(h_var)
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$X_2$')
+    pplt.title(r'Variance, slice $(X_1, X_2)$ at best')
+    pplt.draw()
+
+    pplt.show()
+
 def evaluate_gp(chooser, candidates, complete, values, durations, pending):
     # Ask the choose to compute the GP on this grid
     # First mash the data into a format that matches that of the other
@@ -126,11 +147,11 @@ def evaluate_gp(chooser, candidates, complete, values, durations, pending):
                           np.ones(candidates.shape[0]),
                           1.+np.ones(pending.shape[0])))
 
-    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
+    mean, variance = chooser.plot(grid, np.squeeze(values), durations,
                          np.nonzero(grid_idx == 1)[0],
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
-    return (plot_mean, plot_variance)
+    return (mean, variance)
 
 
 ##############################################################################
@@ -214,14 +235,14 @@ def main_controller(options, args):
     # Evaluate on the marginal slice containing the best fit
     best_complete = complete[best_job,:]
     x, candidates = slice_1d(best_complete, 0, options.grid_size)
-    plot_mean, plot_variance = evaluate_gp(chooser,
+    mean, variance = evaluate_gp(chooser,
                                            candidates, complete, values,
                                            durations, pending)
 
     pplt.figure(1)
-    h_mean, = pplt.plot(x, plot_mean)
-    h_bound, = pplt.plot(x, plot_mean+np.sqrt(plot_variance), 'r--')
-    pplt.plot(x, plot_mean-np.sqrt(plot_variance), 'r--')
+    h_mean, = pplt.plot(x, mean)
+    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
+    pplt.plot(x, mean-np.sqrt(variance), 'r--')
     pplt.xlabel(r'$X_1$')
     pplt.ylabel(r'$p(X_1|X_{-1})$')
     pplt.title('Slice on $X_1$ at best point')
@@ -232,29 +253,11 @@ def main_controller(options, args):
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
-    plot_mean, plot_variance = evaluate_gp(chooser,
-                                           candidates, complete, values,
-                                           durations, pending)
+    mean, variance = evaluate_gp(chooser,
+                                   candidates, complete, values,
+                                   durations, pending)
+    plot_2d(x, y, mean, variance)
 
-    pplt.figure(2)
-    pplt.subplot(121)
-    h_mean = pplt.pcolormesh(x, y, plot_mean.reshape(options.grid_size,
-                                        options.grid_size))
-    pplt.colorbar(h_mean)
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$X_2$')
-    pplt.title(r'Mean, slice $(X_1, X_2)$ at best')
-
-    pplt.subplot(122)
-    h_var = pplt.pcolormesh(x, y, plot_variance.reshape(options.grid_size,
-                                            options.grid_size))
-    pplt.colorbar(h_var)
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$X_2$')
-    pplt.title(r'Variance, slice $(X_1, X_2)$ at best')
-    pplt.draw()
-
-    pplt.show()
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
@@ -272,7 +275,7 @@ def main_controller(options, args):
         params = gmap.unit_to_list(candidates[i,:])
         for p in params:
             output = output + str(p) + ","
-        output = output + str(plot_mean[i]) + "," + str(plot_variance[i]) + "\n"
+        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
 
     outfile = open(options.plot_file,"w")
     outfile.write(output)
