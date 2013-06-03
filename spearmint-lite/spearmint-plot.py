@@ -112,6 +112,27 @@ def slice_2d(v, dim1, dim2, side_size):
 
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
+def evaluate_gp(chooser, candidates, complete, values, durations, pending):
+    # Ask the choose to compute the GP on this grid
+    # First mash the data into a format that matches that of the other
+    # spearmint drivers to pass to the chooser modules.        
+    grid = candidates
+    if (complete.shape[0] > 0):
+        grid = np.vstack((complete, candidates))
+    if (pending.shape[0] > 0):
+        grid = np.vstack((grid, pending))
+    grid = np.asarray(grid)
+    grid_idx = np.hstack((np.zeros(complete.shape[0]),
+                          np.ones(candidates.shape[0]),
+                          1.+np.ones(pending.shape[0])))
+
+    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
+                         np.nonzero(grid_idx == 1)[0],
+                         np.nonzero(grid_idx == 2)[0],
+                         np.nonzero(grid_idx == 0)[0])
+    return (plot_mean, plot_variance)
+
+
 ##############################################################################
 ##############################################################################
 def main_controller(options, args):
@@ -193,24 +214,9 @@ def main_controller(options, args):
     # Evaluate on the marginal slice containing the best fit
     best_complete = complete[best_job,:]
     x, candidates = slice_1d(best_complete, 0, options.grid_size)
-
-    # Ask the choose to compute the GP on this grid
-    # First mash the data into a format that matches that of the other
-    # spearmint drivers to pass to the chooser modules.        
-    grid = candidates
-    if (complete.shape[0] > 0):
-        grid = np.vstack((complete, candidates))
-    if (pending.shape[0] > 0):
-        grid = np.vstack((grid, pending))
-    grid = np.asarray(grid)
-    grid_idx = np.hstack((np.zeros(complete.shape[0]),
-                          np.ones(candidates.shape[0]),
-                          1.+np.ones(pending.shape[0])))
-
-    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
-                         np.nonzero(grid_idx == 1)[0],
-                         np.nonzero(grid_idx == 2)[0],
-                         np.nonzero(grid_idx == 0)[0])
+    plot_mean, plot_variance = evaluate_gp(chooser,
+                                           candidates, complete, values,
+                                           durations, pending)
 
     pplt.figure(1)
     h_mean, = pplt.plot(x, plot_mean)
@@ -226,24 +232,9 @@ def main_controller(options, args):
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
-
-    # Ask the choose to compute the GP on this grid
-    # First mash the data into a format that matches that of the other
-    # spearmint drivers to pass to the chooser modules.        
-    grid = candidates
-    if (complete.shape[0] > 0):
-        grid = np.vstack((complete, candidates))
-    if (pending.shape[0] > 0):
-        grid = np.vstack((grid, pending))
-    grid = np.asarray(grid)
-    grid_idx = np.hstack((np.zeros(complete.shape[0]),
-                          np.ones(candidates.shape[0]),
-                          1.+np.ones(pending.shape[0])))
-
-    plot_mean, plot_variance = chooser.plot(grid, np.squeeze(values), durations,
-                         np.nonzero(grid_idx == 1)[0],
-                         np.nonzero(grid_idx == 2)[0],
-                         np.nonzero(grid_idx == 0)[0])
+    plot_mean, plot_variance = evaluate_gp(chooser,
+                                           candidates, complete, values,
+                                           durations, pending)
 
     pplt.figure(2)
     pplt.subplot(121)
