@@ -71,8 +71,8 @@ def main():
                       help="Results file name.",
                       type="string", default="results.dat")
     parser.add_option("--plot-file", dest="plot_file",
-                      help="File containing the plot.",
-                      type="string", default="plot.dat")
+                      help="CSV plot file name.",
+                      type="string", default="plot.csv")
 
     (options, args) = parser.parse_args()
 
@@ -182,39 +182,22 @@ def main_controller(options, args):
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
 
-    plot_mean = plot_mean.reshape(y.shape[0], x.shape[0])
-    plot_variance = plot_variance.reshape(y.shape[0], x.shape[0])
-
-    pplt.pcolor(x, y, plot_mean)
+    pplt.pcolor(x, y, plot_mean.reshape(y.shape[0], x.shape[0]))
     pplt.show()
-    pplt.pcolor(x, y, plot_variance)
+    pplt.pcolor(x, y, plot_variance.reshape(y.shape[0], x.shape[0]))
     pplt.show()
-    return 1
-    
-    # If the job_id is a tuple, then the chooser picked a new job not from
-    # the candidate list
-    if isinstance(job_id, tuple):
-        (job_id, candidate) = job_id
-    else:
-        candidate = candidates[job_id,:]
 
-    sys.stderr.write("Selected job %d from the grid.\n" % (job_id))
-    if pending.shape[0] > 0:
-        pending = np.vstack((pending, candidate))
-    else:
-        pending = np.matrix(candidate)
-
-    params = gmap.unit_to_list(candidate)
-
-    # Now lets write this candidate to the file as pending
+    # Now lets write this evaluation to the CSV plot file
     output = ""
-    for p in params:
-        output = output + str(p) + " "
-        
-    output = "P P " + output + "\n"
-    outfile = open(plot_file,"a")
+    for i in range(0,candidates.shape[0]):
+        params = gmap.unit_to_list(candidates[i,:])
+        for p in params:
+            output = output + str(p) + ","
+        output = output + str(plot_mean[i]) + "," + str(plot_variance[i]) + "\n"
+
+    outfile = open(options.plot_file,"w")
     outfile.write(output)
-    outfile.close()        
+    outfile.close()
 
 # And that's it
 if __name__ == '__main__':
