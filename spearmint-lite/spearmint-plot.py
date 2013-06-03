@@ -92,6 +92,20 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
+def plot_1d(x, mean, variance):
+    pplt.figure(1)
+    h_mean, = pplt.plot(x, mean)
+    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
+    pplt.plot(x, mean-np.sqrt(variance), 'r--')
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$p(X_1|X_{-1})$')
+    pplt.title('Slice on $X_1$ at best point')
+    pplt.legend([h_mean, h_bound],
+                ["Mean", "+/- Standard dev."],
+                loc="lower center")
+    pplt.draw()
+
+
 # Compute a grid on the 1D slice containing
 # and along dimensions  dim1 and dim2
 def slice_2d(v, dim1, dim2, side_size):
@@ -153,6 +167,48 @@ def evaluate_gp(chooser, candidates, complete, values, durations, pending):
                          np.nonzero(grid_idx == 0)[0])
     return (mean, variance)
 
+def read_results(res_file, gmap):
+    values = np.array([])
+    complete = np.array([])
+    pending = np.array([])
+    durations = np.array([])
+
+    infile = open(res_file, 'r')
+    for line in infile.readlines():
+        # Each line in this file represents an experiment
+        # It is whitespace separated and of the form either
+        # <Value> <time taken> <space separated list of parameters>
+        # incating a completed experiment or
+        # P P <space separated list of parameters>
+        # indicating a pending experiment
+        expt = line.split()
+        if (len(expt) < 3):
+            continue
+
+        val = expt.pop(0)
+        dur = expt.pop(0)
+        variables = gmap.to_unit(expt)
+        if val == 'P':
+            if pending.shape[0] > 0:
+                pending = np.vstack((pending, variables))
+            else:
+                pending = np.matrix(variables)
+        else:
+            if complete.shape[0] > 0:
+                values = np.vstack((values, float(val)))
+                complete = np.vstack((complete, variables))
+                durations = np.vstack((durations, float(dur)))
+            else:
+                values = float(val)
+                complete = np.matrix(variables)
+                durations = float(dur)
+
+    infile.close()
+    # Some stats
+    sys.stderr.write("#Complete: %d #Pending: %d\n" % 
+                     (complete.shape[0], pending.shape[0]))
+
+    return (values, complete, pending, durations)
 
 ##############################################################################
 ##############################################################################
@@ -185,46 +241,8 @@ def main_controller(options, args):
         thefile.write("")
         thefile.close()
 
-    values = np.array([])
-    complete = np.array([])
-    pending = np.array([])
-    durations = np.array([])
-    index = 0
-
-    infile = open(res_file, 'r')
-    for line in infile.readlines():
-        # Each line in this file represents an experiment
-        # It is whitespace separated and of the form either
-        # <Value> <time taken> <space separated list of parameters>
-        # incating a completed experiment or
-        # P P <space separated list of parameters>
-        # indicating a pending experiment
-        expt = line.split()
-        if (len(expt) < 3):
-            continue
-
-        val = expt.pop(0)
-        dur = expt.pop(0)
-        variables = gmap.to_unit(expt)
-        if val == 'P':
-            if pending.shape[0] > 0:
-                pending = np.vstack((pending, variables))
-            else:
-                pending = np.matrix(variables)
-        else:
-            if complete.shape[0] > 0:
-                values = np.vstack((values, float(val)))
-                complete = np.vstack((complete, variables))
-                durations = np.vstack((durations, float(dur)))
-            else:
-                values = float(val)
-                complete = np.matrix(variables)
-                durations = float(dur)
-            
-    infile.close()
-    # Some stats
-    sys.stderr.write("#Complete: %d #Pending: %d\n" % 
-                     (complete.shape[0], pending.shape[0]))
+    # Read the results from file
+    values, complete, pending, durations = read_results(res_file, gmap)
 
     # Let's print out the best value so far
     if type(values) is not float and len(values) > 0:
@@ -238,18 +256,7 @@ def main_controller(options, args):
     mean, variance = evaluate_gp(chooser,
                                            candidates, complete, values,
                                            durations, pending)
-
-    pplt.figure(1)
-    h_mean, = pplt.plot(x, mean)
-    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
-    pplt.plot(x, mean-np.sqrt(variance), 'r--')
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$p(X_1|X_{-1})$')
-    pplt.title('Slice on $X_1$ at best point')
-    pplt.legend([h_mean, h_bound],
-                ["Mean", "+/- Standard dev."],
-                loc="lower center")
-    pplt.draw()
+    plot_1d(x, mean, variance)
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
