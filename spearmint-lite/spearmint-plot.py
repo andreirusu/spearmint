@@ -210,6 +210,31 @@ def read_results(res_file, gmap):
 
     return (values, complete, pending, durations)
 
+def save_2d(out_file, gmap, candidates, mean, variance):
+    # Now lets write this evaluation to the CSV plot file
+    output = ""
+    for v in gmap.variables:
+        dim = v['size']
+        if dim > 1:
+            for i in range(1,dim+1):
+                output = output + str(v['name']) + "_" + str(i) + ","
+        else:
+            output = output + str(v['name']) + ","
+
+    output = output + "Mean,Variance\n"
+
+    candidates = np.asarray(candidates)
+    for i in range(0,candidates.shape[0]):
+        params = gmap.unit_to_list(candidates[i,:])
+        for p in params:
+            output = output + str(p) + ","
+        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
+
+    out = open(out_file,"w")
+    out.write(output)
+    out.close()
+
+
 ##############################################################################
 ##############################################################################
 def main_controller(options, args):
@@ -241,7 +266,7 @@ def main_controller(options, args):
         thefile.write("")
         thefile.close()
 
-    # Read the results from file
+    # Read results from file
     values, complete, pending, durations = read_results(res_file, gmap)
 
     # Let's print out the best value so far
@@ -265,28 +290,8 @@ def main_controller(options, args):
                                    durations, pending)
     plot_2d(x, y, mean, variance)
 
-    # Now lets write this evaluation to the CSV plot file
-    output = ""
-    for v in gmap.variables:
-        dim = v['size']
-        if dim > 1:
-            for i in range(1,dim+1):
-                output = output + str(v['name']) + "_" + str(i) + ","
-        else:
-            output = output + str(v['name']) + ","
-
-    output = output + "Mean,Variance\n"
-
-    candidates = np.asarray(candidates)
-    for i in range(0,candidates.shape[0]):
-        params = gmap.unit_to_list(candidates[i,:])
-        for p in params:
-            output = output + str(p) + ","
-        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
-
-    outfile = open(options.plot_file,"w")
-    outfile.write(output)
-    outfile.close()
+    out_file = os.path.join(expt_dir, options.plot_file)
+    save_2d(out_file, gmap, candidates, mean, variance)
 
 # And that's it
 if __name__ == '__main__':
