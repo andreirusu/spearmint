@@ -65,6 +65,9 @@ def main():
     parser.add_option("--config", dest="config_file",
                       help="Configuration file name.",
                       type="string", default="config.json")
+    parser.add_option("--grid-size", dest="grid_size",
+                      help="Grid size on each plotting dimension.",
+                      type="string", default=100)
     parser.add_option("--results", dest="results_file",
                       help="Results file name.",
                       type="string", default="results.dat")
@@ -156,8 +159,8 @@ def main_controller(options, args):
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
 
     # Now let's evaluate the GP on a grid
-    x = np.linspace(0,1,100)
-    y = np.linspace(0,1,100)
+    x = np.linspace(0,1,options.grid_size)
+    y = np.linspace(0,1,options.grid_size)
     xx, yy = np.meshgrid(x, y)
     candidates = np.hstack((xx.reshape(-1,1),
                             yy.reshape(-1,1)))
