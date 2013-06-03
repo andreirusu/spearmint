@@ -212,16 +212,20 @@ def main_controller(options, args):
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
 
-    pplt.plot(x, plot_mean)
-    pplt.plot(x, plot_mean+np.sqrt(plot_variance))
-    pplt.plot(x, plot_mean-np.sqrt(plot_variance))
-    pplt.show()
+    pplt.figure(1)
+    h_mean, = pplt.plot(x, plot_mean)
+    h_bound, = pplt.plot(x, plot_mean+np.sqrt(plot_variance), 'r--')
+    pplt.plot(x, plot_mean-np.sqrt(plot_variance), 'r--')
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$p(X_1|X_{-1})$')
+    pplt.title('Slice on $X_1$ at best point')
+    pplt.legend([h_mean, h_bound],
+                ["Mean", "+/- Standard dev."],
+                loc="lower center")
+    pplt.draw()
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
-    print('x is ' , type(x))
-    print('y is ' , type(y))
-    print('candidates is ' , type(candidates))
 
     # Ask the choose to compute the GP on this grid
     # First mash the data into a format that matches that of the other
@@ -241,13 +245,25 @@ def main_controller(options, args):
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
 
-    pplt.pcolor(x, y, plot_mean.reshape(options.grid_size,
+    pplt.figure(2)
+    pplt.subplot(121)
+    h_mean = pplt.pcolormesh(x, y, plot_mean.reshape(options.grid_size,
                                         options.grid_size))
-    pplt.show()
-    pplt.pcolor(x, y, plot_variance.reshape(options.grid_size,
-                                            options.grid_size))
-    pplt.show()
+    pplt.colorbar(h_mean)
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$X_2$')
+    pplt.title(r'Mean, slice $(X_1, X_2)$ at best')
 
+    pplt.subplot(122)
+    h_var = pplt.pcolormesh(x, y, plot_variance.reshape(options.grid_size,
+                                            options.grid_size))
+    pplt.colorbar(h_var)
+    pplt.xlabel(r'$X_1$')
+    pplt.ylabel(r'$X_2$')
+    pplt.title(r'Variance, slice $(X_1, X_2)$ at best')
+    pplt.draw()
+
+    pplt.show()
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
