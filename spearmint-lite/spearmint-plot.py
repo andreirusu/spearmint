@@ -56,8 +56,6 @@ except ImportError: import json
 def main():
     parser = optparse.OptionParser(usage="usage: %prog [options] directory")
 
-    parser.add_option("--max-finished-jobs", dest="max_finished_jobs",
-                      type="int", default=1000)
     parser.add_option("--method", dest="chooser_module",
                       help="Method for choosing experiments.",
                       type="string", default="GPEIOptChooser")
