@@ -145,7 +145,6 @@ def plot_2d(x, y, mean, variance):
     pplt.title(r'Variance, slice $(X_1, X_2)$ at best')
     pplt.draw()
 
-    pplt.show()
 
 def evaluate_gp(chooser, candidates, complete, values, durations, pending):
     # Ask the choose to compute the GP on this grid
@@ -287,6 +286,7 @@ def main_controller(options, args):
                                candidates, complete, values,
                                durations, pending)
     plot_1d(x, mean, variance, best_complete)
+    pplt.savefig(os.path.join(plot_dir,'1d.png'))
     out_file = os.path.join(plot_dir, '1d.csv')
     save_to_csv(out_file, gmap, candidates, mean, variance)
 
@@ -296,9 +296,11 @@ def main_controller(options, args):
                                    candidates, complete, values,
                                    durations, pending)
     plot_2d(x, y, mean, variance)
-
+    pplt.savefig(os.path.join(plot_dir,'2d.png'))
     out_file = os.path.join(plot_dir, '2d.csv')
     save_to_csv(out_file, gmap, candidates, mean, variance)
+
+    pplt.show()
 
 # And that's it
 if __name__ == '__main__':
