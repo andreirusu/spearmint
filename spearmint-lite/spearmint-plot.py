@@ -95,14 +95,16 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
-def plot_1d(x, mean, variance, slice_at):
+def plot_1d(x, mean, variance, slice_at, var_name):
     pplt.figure()
     h_mean, = pplt.plot(x, mean)
     h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
     pplt.plot(x, mean-np.sqrt(variance), 'r--')
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$f(X_1, X_2)$')
-    pplt.title('Slice on $X_1$ at $(X_1,X_2)=' + str(slice_at) + '$')
+    pplt.xlabel(r'$' + var_name + '$')
+    pplt.ylabel(r'$f')
+    slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
+    slice_at_string = str(["%.2f" % member for member in slice_at_list])
+    pplt.title(r'Slice along ' + var_name + ' at ' + slice_at_string) #+ str(slice_at.tolist()))
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
                 loc="upper right")
@@ -298,7 +300,7 @@ def main_controller(options, args):
             mean, variance = evaluate_gp(chooser,
                                        candidates, complete, values,
                                        durations, pending)
-            plot_1d(x, mean, variance, best_complete)
+            plot_1d(x, mean, variance, best_complete, v1_name)
             pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance)
