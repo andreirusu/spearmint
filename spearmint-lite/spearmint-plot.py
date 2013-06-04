@@ -74,6 +74,9 @@ def main():
     parser.add_option("--plot-dir", dest="plot_dir",
                       help="Directory to store plots.",
                       type="string", default="plots")
+    parser.add_option("--plot-predictive", dest="plot_predictive",
+                      help="Plot the predictive distribution, not the estimation.",
+                      type="int", default=0)
 
     (options, args) = parser.parse_args()
 
@@ -311,6 +314,9 @@ def main_controller(options, args):
             mean, variance = evaluate_gp(chooser,
                                        candidates, complete, values,
                                        durations, pending)
+            # Add the observation noise to plot the predictive distribution
+            if options.plot_predictive == 1:
+                variance = variance + chooser.noise
             plot_1d(x, mean, variance, best_complete, v1_name)
             pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
