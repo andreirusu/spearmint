@@ -1,4 +1,4 @@
-import branin
+import danilosine
 """
 Jasper Snoek
 This is a simple script to help demonstrate the functionality of
@@ -17,7 +17,7 @@ if __name__ == '__main__':
         X = [float(values[0]), float(values[1])]
         print X
         if (val == 'P'):
-            val = branin.branin(X)
+            val = danilosine.danilosine(X)
             newlines.append(str(val) + " 0 " 
                             + str(float(values[0])) + " " 
                             + str(float(values[1])) + "\n")
