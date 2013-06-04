@@ -280,6 +280,34 @@ class GPEIOptChooser:
 
             return int(candidates[best_cand])
 
+    # Given a set of completed 'experiments' in the unit hypercube with
+    # corresponding objective 'values', evaluate the GP mean and variance at the
+    # candidate points
+    def plot(self, grid, values, durations,
+             candidates, pending, complete):
+
+        # Don't bother using fancy GP stuff at first.
+        if complete.shape[0] < 2:
+            return int(candidates[0])
+
+        # Perform the real initialization.
+        if self.D == -1:
+            self._real_init(grid.shape[1], values[complete])
+    
+        # Grab out the relevant sets.
+        comp = grid[complete,:]
+        cand = grid[candidates,:]
+        pend = grid[pending,:]
+        vals = values[complete]
+        numcand = cand.shape[0]
+
+        sys.stderr.write("mean: %.2f  amp: %.2f  noise: %.4f  "
+                         "min_ls: %.4f  max_ls: %.4f\n"
+                         % (self.mean, np.sqrt(self.amp2), self.noise,
+                            np.min(self.ls), np.max(self.ls)))
+
+        return self.compute_marginal(comp, cand, vals)
+
     # Compute EI over hyperparameter samples
     def ei_over_hypers(self,comp,pend,cand,vals):
         overall_ei = np.zeros((cand.shape[0], self.mcmc_iters))
@@ -668,3 +696,30 @@ class GPEIOptChooser:
         self.dump_hypers()
         
         return
+
+    def compute_marginal(self, comp, cand, vals):        
+        # Assume there are no pending, don't do anything fancy.            
+        # comp = points at which evaluation already took place
+        # vals = values of the function at comp
+        # cand = candidate points, e.g. grid on which to evaluate the mean and variance
+
+        # Current best.
+        best = np.min(vals)
+
+        # The primary covariances for prediction.
+        comp_cov   = self.cov(comp)
+        cand_cross = self.cov(comp, cand)
+
+        # Compute the required Cholesky.
+        obsv_cov  = comp_cov + self.noise*np.eye(comp.shape[0])
+        obsv_chol = spla.cholesky( obsv_cov, lower=True )
+
+        # Solve the linear systems.
+        alpha  = spla.cho_solve((obsv_chol, True), vals - self.mean)
+        beta   = spla.solve_triangular(obsv_chol, cand_cross, lower=True)
+
+        # Predict the marginal means and variances at candidates.
+        func_m = np.dot(cand_cross.T, alpha) + self.mean
+        func_v = self.amp2*(1+1e-6) - np.sum(beta**2, axis=0)
+
+        return (func_m, func_v)
