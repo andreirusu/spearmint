@@ -101,7 +101,7 @@ def plot_1d(x, mean, variance, slice_at, var_name):
     h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
     pplt.plot(x, mean-np.sqrt(variance), 'r--')
     pplt.xlabel(r'$' + var_name + '$')
-    pplt.ylabel(r'$f')
+    pplt.ylabel(r'$f$')
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
     slice_at_string = str(["%.2f" % member for member in slice_at_list])
     pplt.title(r'Slice along ' + var_name + ' at ' + slice_at_string) #+ str(slice_at.tolist()))
