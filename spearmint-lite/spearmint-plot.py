@@ -283,37 +283,54 @@ def main_controller(options, args):
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
     best_complete = complete[best_job,:]
 
-    # Loop on all dimensions of the grid
-    grid_dim = 0
-    for v in gmap.variables:
-        var_dim = v['size']
-        for i in range(0,var_dim):
-            var_name = str(v['name'])
-            if var_dim > 1:
-                var_name = var_name + "_" + str(i+1)
+    # Loop on first dimension
+    grid_i = 0
+    for v1 in gmap.variables:
+        v1_dim = v1['size']
+        for i in range(0,v1_dim):
+            v1_name = str(v1['name'])
+            if v1_dim > 1:
+                v1_name = v1_name + "_" + str(i+1)
 
             # Evaluate on the marginal slice containing the best fit
-            print('slicing along dim ' + str(grid_dim))
-            x, candidates = slice_1d(best_complete, grid_dim, options.grid_size)
+            print('slicing along dim ' + str(grid_i))
+            x, candidates = slice_1d(best_complete, grid_i, options.grid_size)
             mean, variance = evaluate_gp(chooser,
                                        candidates, complete, values,
                                        durations, pending)
             plot_1d(x, mean, variance, best_complete)
-            pplt.savefig(os.path.join(plot_dir, var_name + '.png'))
-            out_file = os.path.join(plot_dir, var_name + '.csv')
+            pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
+            out_file = os.path.join(plot_dir, v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance)
 
-            grid_dim = grid_dim + 1
+            # Loop on second dimension
+            grid_j = 0
+            for v2 in gmap.variables:
+                v2_dim = v2['size']
+                for j in range(0,v2_dim):
+                    # Sub-diagonal is skipped
+                    if grid_j <= grid_i:
+                        grid_j = grid_j + 1
+                        continue
 
-    # Now let's evaluate the GP on a grid
-    x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
-    mean, variance = evaluate_gp(chooser,
-                                   candidates, complete, values,
-                                   durations, pending)
-    plot_2d(x, y, mean, variance)
-    pplt.savefig(os.path.join(plot_dir,'2d.png'))
-    out_file = os.path.join(plot_dir, '2d.csv')
-    save_to_csv(out_file, gmap, candidates, mean, variance)
+                    v2_name = str(v2['name'])
+                    if v2_dim > 1:
+                        v2_name = v2_name + "_" + str(j+1)
+
+                    # Now let's evaluate the GP on a grid
+                    x, y, candidates = slice_2d(best_complete, grid_i, grid_j, options.grid_size)
+                    mean, variance = evaluate_gp(chooser,
+                                                   candidates, complete, values,
+                                                   durations, pending)
+                    plot_2d(x, y, mean, variance)
+                    pplt.savefig(os.path.join(plot_dir, 
+                                              v1_name + "_" + v2_name + ".png"))
+                    out_file = os.path.join(plot_dir,
+                                              v1_name + "_" + v2_name + ".csv")
+                    save_to_csv(out_file, gmap, candidates, mean, variance)
+                    grid_j = grid_j + 1
+
+            grid_i = grid_i + 1
 
     pplt.show()
 
