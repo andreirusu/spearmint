@@ -71,9 +71,9 @@ def main():
     parser.add_option("--results", dest="results_file",
                       help="Results file name.",
                       type="string", default="results.dat")
-    parser.add_option("--plot-file", dest="plot_file",
-                      help="CSV plot file name.",
-                      type="string", default="plot.csv")
+    parser.add_option("--plot-dir", dest="plot_dir",
+                      help="Directory to store plots.",
+                      type="string", default="plots")
 
     (options, args) = parser.parse_args()
 
@@ -247,6 +247,11 @@ def main_controller(options, args):
         sys.stderr.write("Cannot find experiment directory '%s'.  Aborting.\n" % (expt_dir))
         sys.exit(-1)
 
+    plot_dir = os.path.join(expt_dir, options.plot_dir)
+    if not os.path.exists(plot_dir):
+        sys.stderr.write("Creating plot directory '%s'.\n" % (plot_dir))
+        os.mkdir(plot_dir)
+
     # Load up the chooser module.
     module  = __import__(options.chooser_module)
     chooser = module.init(expt_dir, options.chooser_args)
@@ -282,6 +287,8 @@ def main_controller(options, args):
                                candidates, complete, values,
                                durations, pending)
     plot_1d(x, mean, variance, best_complete)
+    out_file = os.path.join(plot_dir, '1d.csv')
+    save_to_csv(out_file, gmap, candidates, mean, variance)
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
@@ -290,7 +297,7 @@ def main_controller(options, args):
                                    durations, pending)
     plot_2d(x, y, mean, variance)
 
-    out_file = os.path.join(expt_dir, options.plot_file)
+    out_file = os.path.join(plot_dir, '2d.csv')
     save_to_csv(out_file, gmap, candidates, mean, variance)
 
 # And that's it
