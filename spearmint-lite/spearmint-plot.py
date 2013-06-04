@@ -92,17 +92,17 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
-def plot_1d(x, mean, variance):
+def plot_1d(x, mean, variance, slice_at):
     pplt.figure(1)
     h_mean, = pplt.plot(x, mean)
     h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
     pplt.plot(x, mean-np.sqrt(variance), 'r--')
     pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$p(X_1|X_{-1})$')
-    pplt.title('Slice on $X_1$ at best point')
+    pplt.ylabel(r'$f(X_1, X_2)$')
+    pplt.title('Slice on $X_1$ at $(X_1,X_2)=' + str(slice_at) + '$')
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
-                loc="lower center")
+                loc="upper right")
     pplt.draw()
 
 
@@ -210,7 +210,7 @@ def read_results(res_file, gmap):
 
     return (values, complete, pending, durations)
 
-def save_2d(out_file, gmap, candidates, mean, variance):
+def save_to_csv(csv_file, gmap, candidates, mean, variance):
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
@@ -230,7 +230,7 @@ def save_2d(out_file, gmap, candidates, mean, variance):
             output = output + str(p) + ","
         output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
 
-    out = open(out_file,"w")
+    out = open(csv_file,"w")
     out.write(output)
     out.close()
 
@@ -279,9 +279,9 @@ def main_controller(options, args):
     best_complete = complete[best_job,:]
     x, candidates = slice_1d(best_complete, 0, options.grid_size)
     mean, variance = evaluate_gp(chooser,
-                                           candidates, complete, values,
-                                           durations, pending)
-    plot_1d(x, mean, variance)
+                               candidates, complete, values,
+                               durations, pending)
+    plot_1d(x, mean, variance, best_complete)
 
     # Now let's evaluate the GP on a grid
     x, y, candidates = slice_2d(best_complete, 0, 1, options.grid_size)
@@ -291,7 +291,7 @@ def main_controller(options, args):
     plot_2d(x, y, mean, variance)
 
     out_file = os.path.join(expt_dir, options.plot_file)
-    save_2d(out_file, gmap, candidates, mean, variance)
+    save_to_csv(out_file, gmap, candidates, mean, variance)
 
 # And that's it
 if __name__ == '__main__':
