@@ -15,12 +15,16 @@ if __name__ == '__main__':
         val = values.pop(0)
         dur = values.pop(0)
         X = [float(values[0]), float(values[1])]
+        Y = [float(values[2]), float(values[3])]
         print X
+        print Y
         if (val == 'P'):
-            val = branin.branin(X)
+            val = branin.branin(X, Y)
             newlines.append(str(val) + " 0 " 
-                            + str(float(values[0])) + " " 
-                            + str(float(values[1])) + "\n")
+                            + str(float(values[0])) + " "
+                            + str(float(values[1])) + " "
+                            + str(float(values[2])) + " "
+                            + str(float(values[3])) + "\n")
         else:
             newlines.append(line)
 
