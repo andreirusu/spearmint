@@ -131,23 +131,27 @@ def slice_2d(v, dim1, dim2, side_size):
 
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
-def plot_2d(x, y, mean, variance):
+def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.figure()
     pplt.subplot(121)
     h_mean = pplt.pcolormesh(x, y, 
                              mean.reshape(x.shape[0], y.shape[0]))
     pplt.colorbar(h_mean)
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$X_2$')
-    pplt.title(r'Mean, slice $(X_1, X_2)$ at best')
+    slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
+    slice_at_string = str(["%.2f" % member for member in slice_at_list])
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
+               slice_at_string)
 
     pplt.subplot(122)
     h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
                                                    y.shape[0]))
     pplt.colorbar(h_var)
-    pplt.xlabel(r'$X_1$')
-    pplt.ylabel(r'$X_2$')
-    pplt.title(r'Variance, slice $(X_1, X_2)$ at best')
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
+               slice_at_string)
     pplt.draw()
 
 
@@ -328,7 +332,8 @@ def main_controller(options, args):
                     mean, variance = evaluate_gp(chooser,
                                                    candidates, complete, values,
                                                    durations, pending)
-                    plot_2d(x, y, mean, variance)
+                    plot_2d(x, y, mean, variance, best_complete, v1_name,
+                            v2_name)
                     pplt.savefig(os.path.join(plot_dir, 
                                               v1_name + "_" + v2_name + ".png"))
                     out_file = os.path.join(plot_dir,
