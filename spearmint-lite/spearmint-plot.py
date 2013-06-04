@@ -283,7 +283,11 @@ def main_controller(options, args):
         best_val = np.min(values)
         best_job = np.argmin(values)
         sys.stderr.write("Current best: %f (job %d)\n" % (best_val, best_job))
-    best_complete = complete[best_job,:]
+        best_complete = complete[best_job,:]
+    else:
+        # TODO: deal with plotting the prior GP with no evaluated points
+        sys.stderr.write("Need at least one complete evaluation to plot\n")
+        sys.exit(-1)
 
     # Loop on first dimension
     grid_i = 0
