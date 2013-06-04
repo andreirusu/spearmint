@@ -118,9 +118,9 @@ def slice_2d(v, dim1, dim2, side_size):
 
     vrep = v.repeat(square_size, 0)
 
-    left = vrep[:, 0:dim1].reshape(square_size, dim1-1)
-    middle = vrep[:, dim1+1:dim2].reshape(square_size, dim2-dim1-1)
-    right = vrep[:, dim2+1:].reshape(square_size, v.shape[1]-dim2-1)
+    left = vrep[:, 0:dim1].reshape(square_size, dim1)
+    middle = vrep[:, dim1+1:dim2].reshape(square_size, dim2-(dim1+1))
+    right = vrep[:, dim2+1:].reshape(square_size, v.shape[1]-(dim2+1))
 
     x = np.linspace(0, 1, side_size)
     y = np.linspace(0, 1, side_size)
