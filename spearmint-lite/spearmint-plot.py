@@ -73,7 +73,10 @@ def main():
     parser.add_option("--plot-dir", dest="plot_dir",
                       help="Directory to store plots.",
                       type="string", default="plots")
-    parser.add_option("--plot-predictive", dest="plot_predictive",
+    parser.add_option("--plot-format", dest="plot_format",
+                      help="File format for the plots, PDF or PNG.",
+                      type="string", default="pdf")
+    parser.add_option("--predictive", dest="plot_predictive",
                       help="Plot the predictive distribution, not the estimation.",
                       action="store_true", default=0)
 
@@ -271,6 +274,8 @@ def main_controller(options, args):
         sys.stderr.write("Cannot find experiment directory '%s'.  Aborting.\n" % (expt_dir))
         sys.exit(-1)
 
+    plot_format = options.plot_format
+
     plot_dir = os.path.join(expt_dir, options.plot_dir)
     if not os.path.exists(plot_dir):
         sys.stderr.write("Creating plot directory '%s'.\n" % (plot_dir))
@@ -334,7 +339,7 @@ def main_controller(options, args):
                            np.asarray(values).squeeze(), 
                              c='lime', marker='o', s=dot_size)
 
-            pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
+            pplt.savefig(os.path.join(plot_dir, v1_name + '.' + plot_format))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance)
 
@@ -372,7 +377,8 @@ def main_controller(options, args):
                                      c='lime', marker='o', s=dot_size)
 
                     pplt.savefig(os.path.join(plot_dir, 
-                                              v1_name + "_" + v2_name + ".png"))
+                                              v1_name + "_" + v2_name + "." +
+                                              plot_format))
                     out_file = os.path.join(plot_dir,
                                               v1_name + "_" + v2_name + ".csv")
                     save_to_csv(out_file, gmap, candidates, mean, variance)
