@@ -301,6 +301,35 @@ class GPEIOptChooser:
         vals = values[complete]
         numcand = cand.shape[0]
 
+
+        if self.mcmc_iters > 0:
+
+            # Possibly burn in.
+            if self.needs_burnin:
+                for mcmc_iter in xrange(self.burnin):
+                    self.sample_hypers(comp, vals)
+                    sys.stderr.write("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f\n"
+                                     % (mcmc_iter+1, self.burnin, self.mean, 
+                                        np.sqrt(self.amp2), self.noise, 
+                                        np.min(self.ls), np.max(self.ls)))
+                self.needs_burnin = False
+
+            # Sample from hyperparameters.
+            # Adjust the candidates to hit ei peaks
+            self.hyper_samples = []
+            for mcmc_iter in xrange(self.mcmc_iters):
+                self.sample_hypers(comp, vals)
+                sys.stderr.write("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
+                                 "min_ls: %.4f  max_ls: %.4f\n"
+                                 % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                                    np.sqrt(self.amp2), self.noise,
+                                    np.min(self.ls), np.max(self.ls)))            
+            self.dump_hypers()
+        else:
+            # Optimize hyperparameters
+            self.optimize_hypers(comp, vals)
+
         sys.stderr.write("mean: %.2f  amp: %.2f  noise: %.4f  "
                          "min_ls: %.4f  max_ls: %.4f\n"
                          % (self.mean, np.sqrt(self.amp2), self.noise,
