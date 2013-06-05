@@ -64,6 +64,12 @@ MCR_LOCATION = "/home/matlab/v715" # hack
 
 
 ################# START ### ANDREI ########################
+import os
+
+def mkdirp(directory):
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
 
 # Compute a grid on the 1D slice containing
 # point v and along dimensions dim
@@ -80,11 +86,13 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
-def plot_1d(x, mean, variance, slice_at, var_name):
-    pplt.figure()
-    h_mean, = pplt.plot(x, mean)
-    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
-    pplt.plot(x, mean-np.sqrt(variance), 'r--')
+def plot_1d(x, x_min, x_max, mean, variance, slice_at, var_name):
+    pplt.figure(figsize=(10, 8), dpi=100)
+    x = x * (x_max - x_min) + x_min
+    print('PLOT1D:',var_name, 'Min:', x_min, 'Max:', x_max)
+    h_mean, = pplt.plot(x, mean, linewidth=2.0)
+    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--', linewidth=2.0)
+    pplt.plot(x, mean-np.sqrt(variance), 'r--', linewidth=2.0)
     pplt.xlabel(r'$' + var_name + '$')
     pplt.ylabel(r'$f$')
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -98,7 +106,7 @@ def plot_1d(x, mean, variance, slice_at, var_name):
 
 # Compute a grid on the 1D slice containing
 # and along dimensions  dim1 and dim2
-def slice_2d(v, dim1, dim2, side_size):
+def slice_2d(v, x_min, x_max, y_min, y_max, dim1, dim2, side_size):
     square_size = side_size * side_size
 
     vrep = v.repeat(square_size, 0)
@@ -107,8 +115,8 @@ def slice_2d(v, dim1, dim2, side_size):
     middle = vrep[:, dim1+1:dim2].reshape(square_size, dim2-(dim1+1))
     right = vrep[:, dim2+1:].reshape(square_size, v.shape[1]-(dim2+1))
 
-    x = np.linspace(0, 1, side_size)
-    y = np.linspace(0, 1, side_size)
+    x = np.linspace(x_min, x_max, side_size)
+    y = np.linspace(y_min, y_max, side_size)
 
     xx, yy = np.meshgrid(x, y)
     xxcol = xx.reshape(square_size, 1)
@@ -117,7 +125,7 @@ def slice_2d(v, dim1, dim2, side_size):
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
 def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
-    pplt.figure()
+    pplt.figure(figsize=(20, 8), dpi=100)
     pplt.subplot(121)
     h_mean = pplt.pcolormesh(x, y, 
                              mean.reshape(x.shape[0], y.shape[0]))
@@ -135,8 +143,7 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.colorbar(h_var)
     pplt.xlabel(r'$' + v1_name + '$')
     pplt.ylabel(r'$' + v2_name + '$')
-    pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
-               slice_at_string)
+    pplt.title(r'Variance $( ' + v1_name + ',' + v2_name + ')$')
     pplt.draw()
 
 
@@ -150,9 +157,9 @@ def evaluate_gp(chooser, candidates, complete, values, durations):
     grid = np.asarray(grid)
     grid_idx = np.hstack((np.zeros(complete.shape[0]),
                           np.ones(candidates.shape[0])))
-    print('candidates is' + str(candidates))
-    print('complete is' + str(complete))
-    print('values is' + str(values))
+    #print('candidates is' + str(candidates))
+    #print('complete is' + str(complete))
+    #print('values is' + str(values))
 
     mean, variance = chooser.plot(grid, np.squeeze(values), durations,
                          np.nonzero(grid_idx == 1)[0],
@@ -422,8 +429,13 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     ################# START ### ANDREI ########################
     plot_dir = os.path.join(expt_dir, options.plot_dir)
     if not os.path.exists(plot_dir):
-        sys.stderr.write("Creating plot directory '%s'.\n" % (plot_dir))
-        os.mkdir(plot_dir)
+        sys.stderr.write("Creating plot directories '%s'.\n" % (plot_dir))
+        mkdirp(plot_dir)
+        mkdirp(os.path.join(plot_dir, '1D'))
+        mkdirp(os.path.join(plot_dir, '2D'))
+        mkdirp(os.path.join(plot_dir, 'CSV'))
+        mkdirp(os.path.join(plot_dir, 'CSV', '1D'))
+        mkdirp(os.path.join(plot_dir, 'CSV', '2D'))
      
     gmap = expt_grid.vmap
 
@@ -433,8 +445,8 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
         sys.exit(-1)
     best_complete = grid[best_job, :].reshape((1,gmap.cardinality))
 
-    print('Best complete is ' + str(best_complete))
-    print('best_complete.shape is ' + str(best_complete.shape))
+    #print('Best complete is ' + str(best_complete))
+    #print('best_complete.shape is ' + str(best_complete.shape))
 
     # Loop on first dimension
     grid_i = 0
@@ -451,9 +463,10 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
             mean, variance = evaluate_gp(chooser, 
                     candidates, grid[complete, :], values[complete],
                     durations[complete])
-            plot_1d(x, mean, variance, best_complete, v1_name)
-            pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
-            out_file = os.path.join(plot_dir, v1_name + '.csv')
+            plot_1d(x, v1['min'], v1['max'], mean, variance, best_complete, v1_name)
+            pplt.savefig(os.path.join(plot_dir, '1D',  v1_name + '.png'))
+            out_file = os.path.join(plot_dir, 'CSV',  '1D', 
+                    v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance)
 
             # Loop on second dimension
@@ -471,22 +484,23 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
                         v2_name = v2_name + "_" + str(j+1)
 
                     # Now let's evaluate the GP on a grid
-                    x, y, candidates = slice_2d(best_complete, grid_i, grid_j, options.grid_size)
+                    x, y, candidates = slice_2d(best_complete, v1['min'], v1['max'], v2['min'], v2['max'],  grid_i, grid_j, options.grid_size)
                     mean, variance = evaluate_gp(chooser, 
                             candidates, grid[complete, :], values[complete],
                             durations[complete])
                     plot_2d(x, y, mean, variance, best_complete, v1_name,
                             v2_name)
-                    pplt.savefig(os.path.join(plot_dir, 
+                    pplt.savefig(os.path.join(plot_dir, '2D',  
                                               v1_name + "_" + v2_name + ".png"))
-                    out_file = os.path.join(plot_dir,
+                    out_file = os.path.join(plot_dir,  'CSV', '2D',  
                                               v1_name + "_" + v2_name + ".csv")
                     save_to_csv(out_file, gmap, candidates, mean, variance)
                     grid_j = grid_j + 1
 
             grid_i = grid_i + 1
 
-    pplt.show()
+    #pplt.show()
+
     ################# END ### ANDREI ########################
     
     
