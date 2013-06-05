@@ -100,8 +100,11 @@ def slice_1d(v, dim, grid_size):
 def plot_1d(x, mean, variance, slice_at, var_name):
     h_fig = pplt.figure()
     h_mean, = pplt.plot(x, mean)
-    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
-    pplt.plot(x, mean-np.sqrt(variance), 'r--')
+    sd = np.sqrt(variance)
+    upper = mean + sd
+    lower = mean - sd
+    h_bound, = pplt.plot(x, upper, 'r--')
+    pplt.plot(x, lower, 'r--')
     pplt.xlabel(r'$' + var_name + '$')
     pplt.ylabel(r'$f$')
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -113,6 +116,8 @@ def plot_1d(x, mean, variance, slice_at, var_name):
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
                 loc="upper right")
+    pplt.xlim((min(x),max(x)))
+    pplt.ylim((min(lower),max(upper)))
     pplt.draw()
     return h_fig
 
