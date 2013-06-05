@@ -288,6 +288,9 @@ def main_controller(options, args):
     # Read results from file
     values, complete, pending, durations = read_results(res_file, gmap)
 
+
+
+
     # Let's print out the best value so far
     if type(values) is not float and len(values) > 0:
         best_val = np.min(values)

@@ -33,6 +33,9 @@ from google.protobuf import text_format
 from spearmint_pb2   import *
 from ExperimentGrid  import *
 
+import matplotlib as plt
+import matplotlib.pyplot as pplt
+
 DEFAULT_MODULES = [ 'packages/epd/7.1-2',
                     'packages/matlab/r2011b',
                     'mpi/openmpi/1.2.8/intel',
@@ -58,6 +61,144 @@ MCR_LOCATION = "/home/matlab/v715" # hack
 # submits them to the queueing system.
 #
 
+
+
+################# START ### ANDREI ########################
+import os
+
+def mkdirp(directory):
+    if not os.path.isdir(directory):
+        os.makedirs(directory)
+
+
+# Compute a grid on the 1D slice containing
+# point v and along dimensions dim
+def slice_1d(v, dim, grid_size):
+    vrep = v.repeat(grid_size, 0)
+
+    left = vrep[:, 0:dim].reshape(grid_size, dim)
+    print('left is ' + str(left.shape))
+    right = vrep[:, dim+1:].reshape(grid_size, v.shape[1]-dim-1)
+    print('right is ' + str(right.shape))
+
+    x = np.linspace(0, 1, grid_size).reshape(grid_size, 1)
+    print('x is ' + str(x.shape))
+
+    return (x, np.hstack((left, x, right)))
+
+def plot_1d(x, x_min, x_max, mean, variance, slice_at, var_name):
+    pplt.figure(figsize=(10, 8), dpi=100)
+    x = x * (x_max - x_min) + x_min
+    print('PLOT1D:',var_name, 'Min:', x_min, 'Max:', x_max)
+    h_mean, = pplt.plot(x, mean, linewidth=2.0)
+    h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--', linewidth=2.0)
+    pplt.plot(x, mean-np.sqrt(variance), 'r--', linewidth=2.0)
+    pplt.xlabel(r'$' + var_name + '$')
+    pplt.ylabel(r'$f$')
+    slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
+    slice_at_string = str(["%.2f" % member for member in slice_at_list])
+    pplt.title(r'Slice along ' + var_name + ' at ' + slice_at_string) #+ str(slice_at.tolist()))
+    pplt.legend([h_mean, h_bound],
+                ["Mean", "+/- Standard dev."],
+                loc="upper right")
+    pplt.draw()
+
+
+# Compute a grid on the 1D slice containing
+# and along dimensions  dim1 and dim2
+def slice_2d(v, x_min, x_max, y_min, y_max, dim1, dim2, side_size):
+    square_size = side_size * side_size
+
+    vrep = v.repeat(square_size, 0)
+
+    left = vrep[:, 0:dim1].reshape(square_size, dim1)
+    middle = vrep[:, dim1+1:dim2].reshape(square_size, dim2-(dim1+1))
+    right = vrep[:, dim2+1:].reshape(square_size, v.shape[1]-(dim2+1))
+
+    x = np.linspace(x_min, x_max, side_size)
+    y = np.linspace(y_min, y_max, side_size)
+
+    xx, yy = np.meshgrid(x, y)
+    xxcol = xx.reshape(square_size, 1)
+    yycol = yy.reshape(square_size, 1)
+
+    return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
+
+def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
+    pplt.figure(figsize=(20, 8), dpi=100)
+    pplt.subplot(121)
+    h_mean = pplt.pcolormesh(x, y, 
+                             mean.reshape(x.shape[0], y.shape[0]))
+    pplt.colorbar(h_mean)
+    slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
+    slice_at_string = str(["%.2f" % member for member in slice_at_list])
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
+               slice_at_string)
+
+    pplt.subplot(122)
+    h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
+                                                   y.shape[0]))
+    pplt.colorbar(h_var)
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'Variance $( ' + v1_name + ',' + v2_name + ')$')
+    pplt.draw()
+
+
+def evaluate_gp(chooser, candidates, complete, values, durations):
+    # Ask the choose to compute the GP on this grid
+    # First mash the data into a format that matches that of the other
+    # spearmint drivers to pass to the chooser modules.        
+    grid = candidates
+    if (complete.shape[0] > 0):
+        grid = np.vstack((complete, candidates))
+    grid = np.asarray(grid)
+    grid_idx = np.hstack((np.zeros(complete.shape[0]),
+                          np.ones(candidates.shape[0])))
+    #print('candidates is' + str(candidates))
+    #print('complete is' + str(complete))
+    #print('values is' + str(values))
+
+    mean, variance = chooser.plot(grid, np.squeeze(values), durations,
+                         np.nonzero(grid_idx == 1)[0],
+                         np.nonzero(grid_idx == 2)[0],
+                         np.nonzero(grid_idx == 0)[0])
+    return (mean, variance)
+
+def save_to_csv(csv_file, gmap, candidates, mean, variance):
+    # Now lets write this evaluation to the CSV plot file
+    output = ""
+    for v in gmap.variables:
+        dim = v['size']
+        if dim > 1:
+            for i in range(1,dim+1):
+                output = output + str(v['name']) + "_" + str(i) + ","
+        else:
+            output = output + str(v['name']) + ","
+
+    output = output + "Mean,Variance\n"
+
+    candidates = np.asarray(candidates)
+    for i in range(0,candidates.shape[0]):
+        for p in candidates[i,:]:
+            output = output + str(p) + ","
+        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
+
+    out = open(csv_file,"w")
+    out.write(output)
+    out.close()
+
+
+
+################# END ### ANDREI ########################
+
+
+
+
+
+
 def main():
     parser = optparse.OptionParser(usage="usage: %prog [options] directory")
 
@@ -73,8 +214,8 @@ def main():
                       help="Arguments to pass to chooser module.",
                       type="string", default="")
     parser.add_option("--grid-size", dest="grid_size",
-                      help="Number of experiments in initial grid.",
-                      type="int", default=10000)
+                      help="Number of points in each dimension of the plotting grid.",
+                      type="int", default=100)
     parser.add_option("--grid-seed", dest="grid_seed",
                       help="The seed used to initialize initial grid.",
                       type="int", default=1)
@@ -84,6 +225,9 @@ def main():
     parser.add_option("--wrapper", dest="wrapper",
                       help="Run in job-wrapper mode.",
                       action="store_true")
+    parser.add_option("--plot-dir", dest="plot_dir",
+                      help="Directory to store plots.",
+                      type="string", default="plots")
 
     (options, args) = parser.parse_args()
 
@@ -252,12 +396,10 @@ def main_controller(options, args):
     chooser = module.init(expt_dir, options.chooser_args)
  
     # Loop until we run out of jobs.
-    while True:
-        attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
-        time.sleep(1)
+    attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
  
 def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
-    import drmaa
+    #import drmaa
 
     sys.stderr.write("\n")
     
@@ -284,147 +426,84 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     sys.stderr.write("%d candidates   %d pending   %d complete\n" % 
                      (candidates.shape[0], pending.shape[0], complete.shape[0]))
 
-    # Verify that pending jobs are actually running.
-    s = drmaa.Session()
-    s.initialize()
-    for job_id in pending:
-        sgeid = expt_grid.get_sgeid(job_id)
-        reset_job = False
-        
-        try:
-            status = s.jobStatus(str(sgeid))
-        except:
-            sys.stderr.write("EXC: %s\n" % (str(sys.exc_info()[0])))
-            sys.stderr.write("Could not find SGE id for job %d (%d)\n" % 
-                             (job_id, sgeid))
-            status = -1
-            reset_job = True
+    ################# START ### ANDREI ########################
+    plot_dir = os.path.join(expt_dir, options.plot_dir)
+    if not os.path.exists(plot_dir):
+        sys.stderr.write("Creating plot directories '%s'.\n" % (plot_dir))
+        mkdirp(plot_dir)
+        mkdirp(os.path.join(plot_dir, '1D'))
+        mkdirp(os.path.join(plot_dir, '2D'))
+        mkdirp(os.path.join(plot_dir, 'CSV'))
+        mkdirp(os.path.join(plot_dir, 'CSV', '1D'))
+        mkdirp(os.path.join(plot_dir, 'CSV', '2D'))
+     
+    gmap = expt_grid.vmap
 
-        if status == drmaa.JobState.UNDETERMINED:
-            sys.stderr.write("Job %d (%d) in undetermined state.\n" % 
-                             (job_id, sgeid))
-            reset_job = True
+    if np.isnan(best_job):
+        # TODO: deal with plotting the prior GP with no evaluated points
+        sys.stderr.write("Need at least one complete evaluation to plot\n")
+        sys.exit(-1)
+    best_complete = grid[best_job, :].reshape((1,gmap.cardinality))
 
-        elif status in [drmaa.JobState.QUEUED_ACTIVE, drmaa.JobState.RUNNING]:
-            pass # Good shape.
+    #print('Best complete is ' + str(best_complete))
+    #print('best_complete.shape is ' + str(best_complete.shape))
 
-        elif status in [drmaa.JobState.SYSTEM_ON_HOLD,
-                        drmaa.JobState.USER_ON_HOLD,
-                        drmaa.JobState.USER_SYSTEM_ON_HOLD,
-                        drmaa.JobState.SYSTEM_SUSPENDED,
-                        drmaa.JobState.USER_SUSPENDED]:
-            sys.stderr.write("Job %d (%d) is held or suspended.\n" % 
-                             (job_id, sgeid))
-            reset_job = True
+    # Loop on first dimension
+    grid_i = 0
+    for v1 in gmap.variables:
+        v1_dim = v1['size']
+        for i in range(0,v1_dim):
+            v1_name = str(v1['name'])
+            if v1_dim > 1:
+                v1_name = v1_name + "_" + str(i+1)
 
-        elif status == drmaa.JobState.DONE:
-            sys.stderr.write("Job %d (%d) complete but not yet updated.\n" % 
-                             (job_id, sgeid))
+            # Evaluate on the marginal slice containing the best fit
+            print('slicing along dim ' + str(grid_i))
+            x, candidates = slice_1d(best_complete, grid_i, options.grid_size)
+            mean, variance = evaluate_gp(chooser, 
+                    candidates, grid[complete, :], values[complete],
+                    durations[complete])
+            plot_1d(x, v1['min'], v1['max'], mean, variance, best_complete, v1_name)
+            pplt.savefig(os.path.join(plot_dir, '1D',  v1_name + '.png'))
+            out_file = os.path.join(plot_dir, 'CSV',  '1D', 
+                    v1_name + '.csv')
+            save_to_csv(out_file, gmap, candidates, mean, variance)
 
-        elif status == drmaa.JobState.FAILED:
-            sys.stderr.write("Job %d (%d) failed.\n" % (job_id, sgeid))
-            reset_job = True
+            # Loop on second dimension
+            grid_j = 0
+            for v2 in gmap.variables:
+                v2_dim = v2['size']
+                for j in range(0,v2_dim):
+                    # Sub-diagonal is skipped
+                    if grid_j <= grid_i:
+                        grid_j = grid_j + 1
+                        continue
 
-        if reset_job:
+                    v2_name = str(v2['name'])
+                    if v2_dim > 1:
+                        v2_name = v2_name + "_" + str(j+1)
 
-            try:
-                # Kill the job.
-                s.control(str(sgeid), drmaa.JobControlAction.TERMINATE)
-                sys.stderr.write("Killed SGE job %d.\n" % (sgeid))
-            except:
-                sys.stderr.write("Failed to kill SGE job %d.\n" % (sgeid))
+                    # Now let's evaluate the GP on a grid
+                    x, y, candidates = slice_2d(best_complete, v1['min'], v1['max'], v2['min'], v2['max'],  grid_i, grid_j, options.grid_size)
+                    mean, variance = evaluate_gp(chooser, 
+                            candidates, grid[complete, :], values[complete],
+                            durations[complete])
+                    plot_2d(x, y, mean, variance, best_complete, v1_name,
+                            v2_name)
+                    pplt.savefig(os.path.join(plot_dir, '2D',  
+                                              v1_name + "_" + v2_name + ".png"))
+                    out_file = os.path.join(plot_dir,  'CSV', '2D',  
+                                              v1_name + "_" + v2_name + ".csv")
+                    save_to_csv(out_file, gmap, candidates, mean, variance)
+                    grid_j = grid_j + 1
 
-            # Set back to being a candidate state.
-            expt_grid.set_candidate(job_id)
-            sys.stderr.write("Set job %d back to pending status.\n" % (job_id))
+            grid_i = grid_i + 1
 
-    s.exit()
-      
-    # Track the time series of optimization.
-    trace_fh = open(os.path.join(expt_dir, 'trace.csv'), 'a')
-    trace_fh.write("%d,%f,%d,%d,%d,%d\n"
-                   % (time.time(), best_val, best_job,
-                      candidates.shape[0], pending.shape[0], complete.shape[0]))
-    trace_fh.close()
+    #pplt.show()
 
-    # Print out the best job results
-    best_job_fh = open(os.path.join(expt_dir, 'best_job_and_result.txt'), 'a')
-    best_job_fh.write("Best result: %f\n Job-id: %d\n Parameters: %s\n"
-                      % (best_val, best_job, expt_grid.get_params(best_job)))
-    best_job_fh.close()
-
-    if complete.shape[0] >= options.max_finished_jobs:
-        sys.stderr.write("Maximum number of finished jobs (%d) reached. "
-                         "Exiting\n" % options.max_finished_jobs)
-        sys.exit(0)
-
-    if candidates.shape[0] == 0:
-        sys.stderr.write("There are no candidates left.  Exiting.\n")
-        sys.exit(0)
-
-    if pending.shape[0] >= options.max_concurrent:
-        sys.stderr.write("Maximum number of jobs (%d) pending.\n"
-                         % (options.max_concurrent))
-        return
-
-    # Ask the chooser to actually pick one.
-    job_id = chooser.next(grid, values, durations, candidates, pending,
-                          complete)
-
-    # If the job_id is a tuple, then the chooser picked a new job.
-    # We have to add this to our grid
-    if isinstance(job_id, tuple):
-        (job_id, candidate) = job_id
-        job_id = expt_grid.add_to_grid(candidate)
-
-    sys.stderr.write("Selected job %d from the grid.\n" % (job_id))
-
-    # Convert this back into an interpretable job and add metadata.
-    job = Job()
-    job.id        = job_id
-    job.expt_dir  = expt_dir
-    job.name      = expt.name
-    job.language  = expt.language
-    job.status    = 'submitted'
-    job.submit_t  = int(time.time())
-    job.param.extend(expt_grid.get_params(job_id))
-
-    # Make sure we have a job subdirectory.
-    job_subdir = os.path.join(expt_dir, 'jobs')
-    if not os.path.exists(job_subdir):
-        os.mkdir(job_subdir)
-
-    # Name this job file.
-    job_file = os.path.join(job_subdir,
-                            '%08d.pb' % (job_id))
-
-    # Store the job file.
-    save_job(job_file, job)
-
-    # Make sure there is a directory for output.
-    output_subdir = os.path.join(expt_dir, 'output')
-    if not os.path.exists(output_subdir):
-        os.mkdir(output_subdir)
-    output_file = os.path.join(output_subdir,
-                               '%08d.out' % (job_id))
-
-    queue_id, msg = sge_submit("%s-%08d" % (expt_name, job_id),
-                             output_file,
-                             DEFAULT_MODULES,
-                             job_file, work_dir)
-    if queue_id is None:
-        sys.stderr.write("Failed to submit job: %s" % (msg))
-        sys.stderr.write("Deleting job file.\n")
-        os.unlink(job_file)
-        return
-    else:
-        sys.stderr.write("Submitted as job %d\n" % (queue_id))
-
-    # Now, update the experiment status to submitted.
-    expt_grid.set_submitted(job_id, queue_id)
-
-    return
-
+    ################# END ### ANDREI ########################
+    
+    
 def load_expt(filename):
     fh = open(filename, 'rb')
     expt = Experiment()
