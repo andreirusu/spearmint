@@ -99,7 +99,7 @@ def slice_1d(v, dim, grid_size):
     return (x, np.hstack((left, x, right)))
 
 def plot_1d(x, mean, variance, slice_at, var_name):
-    pplt.figure()
+    h_fig = pplt.figure()
     h_mean, = pplt.plot(x, mean)
     h_bound, = pplt.plot(x, mean+np.sqrt(variance), 'r--')
     pplt.plot(x, mean-np.sqrt(variance), 'r--')
@@ -115,7 +115,7 @@ def plot_1d(x, mean, variance, slice_at, var_name):
                 ["Mean", "+/- Standard dev."],
                 loc="upper right")
     pplt.draw()
-
+    return h_fig
 
 # Compute a grid on the 1D slice containing
 # and along dimensions  dim1 and dim2
@@ -138,7 +138,7 @@ def slice_2d(v, dim1, dim2, side_size):
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
 def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
-    pplt.figure()
+    h_fig = pplt.figure()
     pplt.subplot(121)
     h_mean = pplt.pcolormesh(x, y, 
                              mean.reshape(x.shape[0], y.shape[0]))
@@ -159,7 +159,7 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
     pplt.draw()
-
+    return (h_fig, h_mean, h_var)
 
 def evaluate_gp(chooser, candidates, complete, values, durations, pending):
     # Ask the choose to compute the GP on this grid
