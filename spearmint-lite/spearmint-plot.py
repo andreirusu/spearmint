@@ -75,7 +75,7 @@ def main():
                       type="string", default="plots")
     parser.add_option("--plot-predictive", dest="plot_predictive",
                       help="Plot the predictive distribution, not the estimation.",
-                      type="int", default=0)
+                      action="store_true", default=0)
 
     (options, args) = parser.parse_args()
 
