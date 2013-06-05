@@ -1,4 +1,3 @@
-##
 # Copyright (C) 2012 Jasper Snoek, Hugo Larochelle and Ryan P. Adams
 #                                                                                                                                                                              
 # This code is written for research and educational purposes only to
@@ -149,6 +148,8 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.ylabel(r'$' + v2_name + '$')
     pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
+    pplt.xlim((max(x),min(x)))
+    pplt.ylim((min(y),max(y)))
 
     pplt.subplot(122)
     h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
@@ -158,6 +159,9 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.ylabel(r'$' + v2_name + '$')
     pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
+    pplt.xlim((max(x),min(x)))
+    pplt.ylim((min(y),max(y)))
+
     pplt.draw()
     return (h_fig, h_mean, h_var)
 
@@ -256,6 +260,7 @@ def main_controller(options, args):
     expt_dir  = os.path.realpath(args[0])
     work_dir  = os.path.realpath('.')
     expt_name = os.path.basename(expt_dir)
+    dot_size = 50
 
     if not os.path.exists(expt_dir):
         sys.stderr.write("Cannot find experiment directory '%s'.  Aborting.\n" % (expt_dir))
@@ -288,9 +293,6 @@ def main_controller(options, args):
     # Read results from file
     values, complete, pending, durations = read_results(res_file, gmap)
 
-
-
-
     # Let's print out the best value so far
     if type(values) is not float and len(values) > 0:
         best_val = np.min(values)
@@ -321,6 +323,12 @@ def main_controller(options, args):
             if options.plot_predictive == 1:
                 variance = variance + chooser.noise
             plot_1d(x, mean, variance, best_complete, v1_name)
+            # If the space is entirely 1D, plot the evaluation points
+            if gmap.cardinality == 1:
+                pplt.scatter(np.asarray(complete).squeeze(),
+                           np.asarray(values).squeeze(), 
+                             c='lime', marker='o', s=dot_size)
+
             pplt.savefig(os.path.join(plot_dir, v1_name + '.png'))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance)
@@ -344,8 +352,20 @@ def main_controller(options, args):
                     mean, variance = evaluate_gp(chooser,
                                                    candidates, complete, values,
                                                    durations, pending)
-                    plot_2d(x, y, mean, variance, best_complete, v1_name,
+                    h, h_mean, h_var = plot_2d(x, y, mean, variance, best_complete, v1_name,
                             v2_name)
+                    # If the space is entirely 1D, plot the evaluation points
+                    if gmap.cardinality == 2:
+                        pplt.figure(h.number)
+                        pplt.subplot(121)
+                        pplt.scatter(np.asarray(complete[:,0]).squeeze(),
+                                     np.asarray(complete[:,1]).squeeze(),
+                                     c='lime', marker='o', s=dot_size)
+                        pplt.subplot(122)
+                        pplt.scatter(np.asarray(complete[:,0]).squeeze(),
+                                     np.asarray(complete[:,1]).squeeze(),
+                                     c='lime', marker='o', s=dot_size)
+
                     pplt.savefig(os.path.join(plot_dir, 
                                               v1_name + "_" + v2_name + ".png"))
                     out_file = os.path.join(plot_dir,
