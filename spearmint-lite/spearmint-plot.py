@@ -399,7 +399,7 @@ def main_controller(options, args):
                     save_to_csv(out_file, gmap, candidates, mean, variance)
                     grid_j = grid_j + 1
 
-            rid_i = grid_i + 1
+            grid_i = grid_i + 1
 
     pplt.show()
 
