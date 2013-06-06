@@ -152,7 +152,7 @@ def slice_2d(v, dim1, dim2, side_size):
 def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     h_fig = pplt.figure()
     pplt.subplot(121)
-    h_mean = pplt.pcolormesh(x, y, 
+    h_mean = pplt.pcolormesh(x, y,
                              mean.reshape(x.shape[0], y.shape[0]))
     pplt.colorbar(h_mean)
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -163,12 +163,12 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
                slice_at_string)
 
     pplt.subplot(122)
-    h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
-                                                   y.shape[0]))
+    h_var = pplt.pcolormesh(x, y, 2*np.sqrt(variance.reshape(x.shape[0],
+                                                   y.shape[0])))
     pplt.colorbar(h_var)
     pplt.xlabel(r'$' + v1_name + '$')
     pplt.ylabel(r'$' + v2_name + '$')
-    pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
+    pplt.title(r'2*Stdev, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
 
     pplt.draw()
@@ -373,21 +373,23 @@ def main_controller(options, args):
                                                    durations, pending)
                     h, h_mean, h_var = plot_2d(x, y, mean, variance, best_complete, v1_name,
                             v2_name)
-                    # If the space is entirely 1D, plot the evaluation points
+                    if options.plot_max < float("+inf"):
+                        h_mean.set_clim(vmax=options.plot_max)
+                        h_var.set_clim(vmax=options.plot_max)
+                    if options.plot_min > float("-inf"):
+                        h_mean.set_clim(vmin=options.plot_min)
+                        h_var.set_clim(vmin=options.plot_min)
+                    # If the space is entirely 2D, plot the evaluation points
                     if gmap.cardinality == 2:
-                        pplt.figure(h.number)
-                        pplt.subplot(121)
-                        ylim = pplt.ylim()
-                        pplt.scatter(np.asarray(complete[:,0]).squeeze(),
-                                     np.asarray(complete[:,1]).squeeze(),
-                                     c='lime', marker='o', s=dot_size)
-                        pply.ylim(ylim)
-                        pplt.subplot(122)
-                        ylim = pplt.ylim()
-                        pplt.scatter(np.asarray(complete[:,0]).squeeze(),
-                                     np.asarray(complete[:,1]).squeeze(),
-                                     c='lime', marker='o', s=dot_size)
-                        pply.ylim(ylim)
+                        for i in (121,122):
+                            pplt.subplot(i)
+                            xlim = pplt.xlim()
+                            ylim = pplt.ylim()
+                            pplt.scatter(np.asarray(complete[:,0]).squeeze(),
+                                         np.asarray(complete[:,1]).squeeze(),
+                                         c='lime', marker='o', s=dot_size)
+                            pplt.xlim(xlim)
+                            pplt.ylim(ylim)
 
                     pplt.savefig(os.path.join(plot_dir, 
                                               v1_name + "_" + v2_name + "." +
@@ -397,7 +399,7 @@ def main_controller(options, args):
                     save_to_csv(out_file, gmap, candidates, mean, variance)
                     grid_j = grid_j + 1
 
-            grid_i = grid_i + 1
+            rid_i = grid_i + 1
 
     pplt.show()
 
