@@ -76,6 +76,12 @@ def main():
     parser.add_option("--plot-format", dest="plot_format",
                       help="File format for the plots, PDF or PNG.",
                       type="string", default="pdf")
+    parser.add_option("--plot-max", dest="plot_max",
+                      help="Max value of the function for all plots.",
+                      type="float", default=float("+inf"))
+    parser.add_option("--plot-min", dest="plot_min",
+                      help="Max value of the function for all plots.",
+                      type="float", default=float("-inf"))
     parser.add_option("--predictive", dest="plot_predictive",
                       help="Plot the predictive distribution, not the estimation.",
                       action="store_true", default=0)
@@ -119,8 +125,7 @@ def plot_1d(x, mean, variance, slice_at, var_name):
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
                 loc="upper right")
-    pplt.xlim((min(x),max(x)))
-    pplt.ylim((min(lower),max(upper)))
+
     pplt.draw()
     return h_fig
 
@@ -156,8 +161,6 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.ylabel(r'$' + v2_name + '$')
     pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
-    pplt.xlim((max(x),min(x)))
-    pplt.ylim((min(y),max(y)))
 
     pplt.subplot(122)
     h_var = pplt.pcolormesh(x, y, variance.reshape(x.shape[0],
@@ -167,8 +170,6 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.ylabel(r'$' + v2_name + '$')
     pplt.title(r'Variance, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
-    pplt.xlim((max(x),min(x)))
-    pplt.ylim((min(y),max(y)))
 
     pplt.draw()
     return (h_fig, h_mean, h_var)
@@ -268,6 +269,7 @@ def main_controller(options, args):
     expt_dir  = os.path.realpath(args[0])
     work_dir  = os.path.realpath('.')
     expt_name = os.path.basename(expt_dir)
+    
     dot_size = 50
 
     if not os.path.exists(expt_dir):
@@ -333,11 +335,18 @@ def main_controller(options, args):
             if options.plot_predictive == 1:
                 variance = variance + chooser.noise
             plot_1d(x, mean, variance, best_complete, v1_name)
+            if options.plot_max < float("+inf"):
+                pplt.ylim(ymax=options.plot_max)
+            if options.plot_min > float("-inf"):
+                pplt.ylim(ymin=options.plot_min)
+
             # If the space is entirely 1D, plot the evaluation points
             if gmap.cardinality == 1:
+                ylim = pplt.ylim()
                 pplt.scatter(np.asarray(complete).squeeze(),
                            np.asarray(values).squeeze(), 
                              c='lime', marker='o', s=dot_size)
+                pplt.ylim(ylim)
 
             pplt.savefig(os.path.join(plot_dir, v1_name + '.' + plot_format))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
@@ -368,13 +377,17 @@ def main_controller(options, args):
                     if gmap.cardinality == 2:
                         pplt.figure(h.number)
                         pplt.subplot(121)
+                        ylim = pplt.ylim()
                         pplt.scatter(np.asarray(complete[:,0]).squeeze(),
                                      np.asarray(complete[:,1]).squeeze(),
                                      c='lime', marker='o', s=dot_size)
+                        pply.ylim(ylim)
                         pplt.subplot(122)
+                        ylim = pplt.ylim()
                         pplt.scatter(np.asarray(complete[:,0]).squeeze(),
                                      np.asarray(complete[:,1]).squeeze(),
                                      c='lime', marker='o', s=dot_size)
+                        pply.ylim(ylim)
 
                     pplt.savefig(os.path.join(plot_dir, 
                                               v1_name + "_" + v2_name + "." +
