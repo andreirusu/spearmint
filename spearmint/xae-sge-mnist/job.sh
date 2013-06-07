@@ -22,7 +22,7 @@ COMMON_OPTIONS="  -dataset $DATASET -threads $SPEARMINT_JOB_THEREADS -maxUpdates
 
 # build the deep network
 
-ae new -dir $JOBDIR/expdir_layer0  -encoder $ENCODER -decoder linear $SPEARMINT_JOB_OPTIONS_LAYER0 $COMMON_OPTIONS 
+ae new -dir $JOBDIR/expdir_layer0  -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER0 $COMMON_OPTIONS 
 
 ae stack $JOBDIR/expdir_layer0 -dir $JOBDIR/expdir_layer1 -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER1 $COMMON_OPTIONS 
 
