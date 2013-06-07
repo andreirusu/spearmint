@@ -467,6 +467,7 @@ def sge_submit(name, output_file, modules, job_file, working_dir):
 #$ -wd "%s"
 #$ -q torch.q
 #$ -cwd
+#$ -pe omp.pe 2 
 
 # Set up the environment
 . /etc/profile
