@@ -22,11 +22,11 @@ COMMON_OPTIONS="  -dataset $DATASET -threads $SPEARMINT_JOB_THEREADS -maxUpdates
 
 # build the deep network
 
-ae new -dir $JOBDIR/expdir_layer0  -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER0 $COMMON_OPTIONS 
+ae new -dir $JOBDIR/expdir_layer0  -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER0 $COMMON_OPTIONS -seed $RANDOM 
 
-ae stack $JOBDIR/expdir_layer0 -dir $JOBDIR/expdir_layer1 -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER1 $COMMON_OPTIONS 
+ae stack $JOBDIR/expdir_layer0 -dir $JOBDIR/expdir_layer1 -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER1 $COMMON_OPTIONS -seed $RANDOM 
 
-ae stack $JOBDIR/expdir_layer1 -dir $JOBDIR/expdir_layer2 -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER2 $COMMON_OPTIONS 
+ae stack $JOBDIR/expdir_layer1 -dir $JOBDIR/expdir_layer2 -encoder $ENCODER -decoder $DECODER $SPEARMINT_JOB_OPTIONS_LAYER2 $COMMON_OPTIONS -seed $RANDOM 
 
 ae-export-features -input $JOBDIR/expdir_layer2 -format tensor -output $JOBDIR/reps/last -dataset $DATASET_SUP
 
