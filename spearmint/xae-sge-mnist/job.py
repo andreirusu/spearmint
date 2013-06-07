@@ -48,17 +48,16 @@ def job(job_id, params):
     except:
         print(sys.exc_info())
     
+    # read back result
+    f = open('/data/andrei/jobdirs/xae-sge-mnist/job'+str(job_id)+'/res.txt')
+    lines = f.readlines()
+    print(lines[3])
+    # optimizer tries to minimize error, so report error, NOT accuracy
+    result = 100 - float(lines[3].split(': ')[1])
+    print(result)
     print('Success!')
-
-	# read back result
-	f = open('/data/andrei/jobdirs/xae-sge-mnist/job'+str(job_id)+'/res.txt')
-	lines = f.readlines()
-	print(lines[3])
-	result = float(lines[3].split(': ')[1])
-	print(result)
-	# optimizer tries to minimize error, so report error, NOT accuracy
-	return (100.0 - result)
-	
+    return (100.0 - result)
+        
 
 def main(job_id, params):
     print 'Anything printed here will end up in the output directory of job #:', str(job_id)
