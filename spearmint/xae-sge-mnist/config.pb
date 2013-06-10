@@ -17,14 +17,14 @@ variable {
  max:  1
 }
 
-#variable {
-# name: "learningRateDecay"
-# type: FLOAT
-# size: 3
-# min:  0
-# max:  1e-2
-#}
-#
+variable {
+ name: "learningRateDecay"
+ type: FLOAT
+ size: 3
+ min:  0
+ max:  1e-2
+}
+
 
 variable {
  name: "weightDecay"
@@ -34,35 +34,35 @@ variable {
  max:  1e-3
 }
 
-#variable {
-# name: "szMinibatch"
-# type: INT
-# size: 3
-# min:  1
-# max:  300
-#
-#
-#variable {
-# name: "dropoutRatio"
-# type: FLOAT
-# size: 3
-# min:  0.0
-# max:  0.75
-#}
-#
-#variable {
-# name: "L1Cost"
-# type: FLOAT
-# size: 3
-# min:  0.001
-# max:  10.0
-#}
-#
-#variable {
-# name: "hidden"
-# type: INT
-# size: 3
-# min:  100
-# max:  1500
-#}
-#
+variable {
+ name: "szMinibatch"
+ type: INT
+ size: 3
+ min:  1
+ max:  300
+}
+
+variable {
+ name: "dropoutRatio"
+ type: FLOAT
+ size: 3
+ min:  0.0
+ max:  0.75
+}
+
+variable {
+ name: "L1Cost"
+ type: FLOAT
+ size: 3
+ min:  0.001
+ max:  10.0
+}
+
+variable {
+ name: "hidden"
+ type: INT
+ size: 3
+ min:  100
+ max:  1500
+}
+
