@@ -62,7 +62,7 @@ def job(job_id, params):
     result = 100 - float(lines[3].split(': ')[1])
     print(result)
     print('Success!')
-    return (100.0 - result)
+    return result
         
 
 def main(job_id, params):
