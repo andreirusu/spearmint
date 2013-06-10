@@ -26,10 +26,15 @@ def appendAllCommandLineOptions(params, ind):
 def job(job_id, params):
     # set the environment
     env = os.environ
+    # set up minimal environment
+    setEnvVar(env, 'SGE_ROOT', '/var/lib/gridengine')
+    setEnvVar(env, 'SPEARMINT_JOB_TORCH_PATH', '/dmt/software/bin:/Users/andreirusu/.torch/usr/bin')
+    setEnvVar(env, 'SPEARMINT_JOB_TORCH_LIB_PATH', '/dmt/software/lib')
+    # set up job
     setEnvVar(env, 'SPEARMINT_JOB_ID', job_id)
     setEnvVar(env, 'SPEARMINT_JOB_THEREADS', 2)
-    setEnvVar(env, 'DATASET', '/Users/andreirusu/projects/experiment-utils/examples/datasets/mnist')
-    setEnvVar(env, 'SPOOL_DIR', '/data/andrei/jobdirs')
+    setEnvVar(env, 'SPEARMINT_JOB_DATASET', '/Users/andreirusu/projects/experiment-utils/examples/datasets/mnist')
+    setEnvVar(env, 'SPEARMINT_JOB_SPOOL_DIR', '/data/andrei/jobdirs')
     setEnvVar(env, 'SPEARMINT_JOB_TEST_OPTIONS', ' -l 50000 -s 5 ')
     # XAE PARAMETERS
     setEnvVar(env, 'ENCODER', 'logistic')
@@ -50,7 +55,7 @@ def job(job_id, params):
         print(sys.exc_info())
     
     # read back result
-    f = open(os.path.join(env['SPOOL_DIR'], os.path.basename(os.getcwd()), 'job' + str(job_id), 'res.txt'))
+    f = open(os.path.join(env['SPEARMINT_JOB_SPOOL_DIR'], os.path.basename(os.getcwd()), 'job' + str(job_id), 'res.txt'))
     lines = f.readlines()
     print(lines[3])
     # optimizer tries to minimize error, so report error, NOT accuracy
