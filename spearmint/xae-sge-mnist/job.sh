@@ -14,7 +14,7 @@ pwd
 
 # set up minimal environment
 export SGE_ROOT=/var/lib/gridengine/
-export PATH=/dmt3/software/bin:/Users/andreirusu/.torch/usr/bin:$PATH
+export PATH=/dmt/software/bin:/Users/andreirusu/.torch/usr/bin:$PATH
 export LD_LIBRARY_PATH=/dmt3/software/lib:$LD_LIBRARY_PATH
 
 COMMON_OPTIONS="  -dataset $DATASET -threads $SPEARMINT_JOB_THEREADS -maxUpdates $MAX_UPDATES -saveEvery $MAX_UPDATES -visualizeFile -reportEvery $REPORT_EVERY  -train greedy "

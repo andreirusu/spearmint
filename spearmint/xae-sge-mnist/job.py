@@ -42,7 +42,7 @@ def job(job_id, params):
 
         
     # call job
-    cmd = ['sh', 'job.sh']
+    cmd = ['bash', 'job.sh']
     try:
         p = sp.Popen(cmd, env=env)
         p.wait()
