@@ -1,9 +1,10 @@
-import numpy as np
-import subprocess as sp
 import os
 import sys
 import math
 import time
+
+import numpy as np
+import subprocess as sp
 
 
 def setEnvVar(env, varName, value):
