@@ -37,8 +37,8 @@ def job(job_id, params):
     setEnvVar(env, 'SPEARMINT_JOB_SPOOL_DIR', '/data/andrei/jobdirs')
     setEnvVar(env, 'SPEARMINT_JOB_TEST_OPTIONS', ' -l 50000 -s 5 ')
     # XAE PARAMETERS
-    setEnvVar(env, 'ENCODER', 'logistic')
-    setEnvVar(env, 'DECODER', 'logistic')
+    setEnvVar(env, 'ENCODER', 'rlu')
+    setEnvVar(env, 'DECODER', 'linear')
     setEnvVar(env, 'MAX_UPDATES', 1e5)
     setEnvVar(env, 'REPORT_EVERY', 49999)
     setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER0', appendAllCommandLineOptions(params, 0))
