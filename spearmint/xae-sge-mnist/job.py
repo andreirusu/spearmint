@@ -19,7 +19,7 @@ def appendAllCommandLineOptions(params, ind):
     options = ''
     # iterate over all parameters at a certain index
     for option in params:
-        options = options + appendCommandLineOption(options, option, params, ind) 
+        options = appendCommandLineOption(options, option, params, ind) 
     return options
 
 
@@ -50,7 +50,7 @@ def job(job_id, params):
         print(sys.exc_info())
     
     # read back result
-    f = open('/data/andrei/jobdirs/xae-sge-mnist/job'+str(job_id)+'/res.txt')
+    f = open(os.path.join(env['SPOOL_DIR'], os.path.basename(os.getcwd()), 'job' + str(job_id), 'res.txt'))
     lines = f.readlines()
     print(lines[3])
     # optimizer tries to minimize error, so report error, NOT accuracy
