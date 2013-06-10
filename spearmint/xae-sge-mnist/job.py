@@ -39,8 +39,8 @@ def job(job_id, params):
     # XAE PARAMETERS
     setEnvVar(env, 'ENCODER', 'logistic')
     setEnvVar(env, 'DECODER', 'logistic')
-    setEnvVar(env, 'MAX_UPDATES', 1e3)
-    setEnvVar(env, 'REPORT_EVERY', 499)
+    setEnvVar(env, 'MAX_UPDATES', 1e5)
+    setEnvVar(env, 'REPORT_EVERY', 49999)
     setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER0', appendAllCommandLineOptions(params, 0))
     setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER1', appendAllCommandLineOptions(params, 1))
     setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER2', appendAllCommandLineOptions(params, 2))
@@ -75,7 +75,7 @@ if __name__ == '__main__' :
     params = {}
     params['learningRate'] = [0.1, 0.1, 0.1]
     params['momentum'] = [0.9, 0.9, 0.9]
-    params['hidden'] = [500, 100, 50]
+    params['hidden'] = [1000, 1000, 1000]
     params['dropoutRatio'] = [0.3, 0.5, 0.5]
     params['L1Cost'] = [0.1, 0.1, 0.1]
     main(12345, params)
