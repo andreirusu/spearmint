@@ -465,7 +465,7 @@ def sge_submit(name, output_file, modules, job_file, working_dir):
 #$ -e "%s"
 #$ -o "%s"
 #$ -wd "%s"
-#$ -q torch.q
+#$ -q reserved.q
 #$ -cwd
 #$ -pe omp.pe 2 
 
