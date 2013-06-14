@@ -481,6 +481,10 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     #print('Best complete is ' + str(best_complete))
     #print('best_complete.shape is ' + str(best_complete.shape))
 
+
+    # Fit the hyperparameters only once for the whole plotting
+    chooser.prepare_evaluation(grid, values, complete)
+
     # Loop on first dimension
     grid_i = 0
     for v1 in gmap.variables:
