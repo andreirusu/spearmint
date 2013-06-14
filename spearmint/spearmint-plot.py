@@ -232,7 +232,7 @@ def main():
                       type="int", default=1000)
     parser.add_option("--method", dest="chooser_module",
                       help="Method for choosing experiments.",
-                      type="string", default="GPEIChooser")
+                      type="string", default="GPEIOptChooser")
     parser.add_option("--method-args", dest="chooser_args",
                       help="Arguments to pass to chooser module.",
                       type="string", default="")
