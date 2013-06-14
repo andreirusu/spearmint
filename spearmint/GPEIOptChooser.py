@@ -272,7 +272,7 @@ class GPEIOptChooser:
                 cand2[i,:] = ret[0]
             cand = np.vstack((cand, cand2))
 
-            ei = self.compute_ei(comp, pend, cand, vals)
+            ei, _, _ = self.compute_ei(comp, pend, cand, vals)
             best_cand = np.argmax(ei)
 
             if (best_cand >= numcand):
@@ -283,15 +283,17 @@ class GPEIOptChooser:
     # Compute EI over hyperparameter samples
     def ei_over_hypers(self,comp,pend,cand,vals):
         overall_ei = np.zeros((cand.shape[0], self.mcmc_iters))
+        overall_mean = np.zeros((cand.shape[0], self.mcmc_iters))
+        overall_var = np.zeros((cand.shape[0], self.mcmc_iters))
         for mcmc_iter in xrange(self.mcmc_iters):
             hyper = self.hyper_samples[mcmc_iter]
             self.mean = hyper[0]
             self.noise = hyper[1]
             self.amp2 = hyper[2]
             self.ls = hyper[3]
-            overall_ei[:,mcmc_iter] = self.compute_ei(comp, pend, cand,
+            overall_ei[:,mcmc_iter], overall_mean[:,mcmc_iter], overall_var[:,mcmc_iter] = self.compute_ei(comp, pend, cand,
                                                       vals)
-        return overall_ei
+        return overall_ei, overall_mean, overall_var
 
     def check_grad_ei(self, cand, comp, pend, vals):
         (ei,dx1) = self.grad_optimize_ei_over_hypers(cand, comp, pend, vals)
@@ -503,7 +505,7 @@ class GPEIOptChooser:
             npdf   = sps.norm.pdf(u)
             ei     = func_s*( u*ncdf + npdf)
 
-            return ei
+            return ei, func_m, func_v
         else:
             # If there are pending experiments, fantasize their outcomes.
 
@@ -780,10 +782,13 @@ class GPEIOptChooser:
                                               candidates, pending, complete)
 
         if self.mcmc_iters > 0:
-            overall_ei = self.ei_over_hypers(comp,pend,cand,vals)
+            print('Calling ei over hypers')
+            overall_ei, overall_mean, overall_var = self.ei_over_hypers(comp,pend,cand,vals)
             ei = np.average(overall_ei, 1)
+            mean = np.average(overall_mean, 1)
+            var = np.average(overall_var, 1)
         else:
-            ei = self.compute_ei(comp, pend, cand, vals)
+            ei, mean, var = self.compute_ei(comp, pend, cand, vals)
 
-        return ei
+        return ei, mean, var
 

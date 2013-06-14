@@ -135,6 +135,7 @@ def slice_2d(v, x_min, x_max, y_min, y_max, dim1, dim2, side_size):
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
 def plot_2d(x, y, mean, variance, ei, slice_at, v1_name, v2_name):
+    print('PLOT2D:', v1_name, 'vs', v2_name)
     h_fig = pplt.figure(figsize=(20, 8), dpi=100)
     pplt.subplot(131)
     h_mean = pplt.pcolormesh(x, y,
@@ -180,11 +181,7 @@ def evaluate_gp(chooser, candidates, complete, values, durations):
     #print('complete is' + str(complete))
     #print('values is' + str(values))
 
-    mean, variance = chooser.plot(grid, np.squeeze(values), durations,
-                         np.nonzero(grid_idx == 1)[0],
-                         np.nonzero(grid_idx == 2)[0],
-                         np.nonzero(grid_idx == 0)[0])
-    ei = chooser.plot_ei(grid, np.squeeze(values), durations,
+    ei, mean, variance = chooser.plot_ei(grid, np.squeeze(values), durations,
                          np.nonzero(grid_idx == 1)[0],
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
