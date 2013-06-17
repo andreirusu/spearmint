@@ -255,9 +255,9 @@ def main():
     parser.add_option("--plot-min", dest="plot_min",
                       help="Max value of the function for all plots.",
                       type="float", default=float("-inf"))
-    parser.add_option("--no-mcmc", dest="no_mcmc",
-                      help="Deactivate integration over hyperparameters",
-                      action="store_true", default=0)
+    parser.add_option("--mcmc-iters", dest="mcmc_iters",
+                      help="Number of MCMC iterations, -1 to keep to current value.", 
+                      type="int", default=-1)
     parser.add_option("--no-plot", dest="no_plot",
                       help="Do not plot",
                       action="store_true", default=0)
@@ -486,8 +486,8 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     #print('best_complete.shape is ' + str(best_complete.shape))
 
     # Avoid MCMC if not needed
-    if options.no_mcmc:
-        chooser.mcmc_iters = 0
+    if options.mcmc_iters > -1:
+        chooser.mcmc_iters = options.mcmc_iters
 
     # Fit the hyperparameters only once for the whole plotting
     chooser.prepare_evaluation(grid, values, complete)
