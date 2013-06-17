@@ -218,7 +218,7 @@ class GPEIOptChooser:
             for i in xrange(0, cand.shape[1]):
                 b.append((0, 1))
                     
-            overall_ei = self.ei_over_hypers(comp,pend,cand2,vals)
+            overall_ei, _, _ = self.ei_over_hypers(comp,pend,cand2,vals)
             inds = np.argsort(np.mean(overall_ei,axis=1))[-self.grid_subset:]
             cand2 = cand2[inds,:]
 
@@ -243,7 +243,7 @@ class GPEIOptChooser:
                 cand = np.vstack((cand, res.get(1e8)))
             pool.close()
             
-            overall_ei = self.ei_over_hypers(comp,pend,cand,vals)
+            overall_ei, _, _ = self.ei_over_hypers(comp,pend,cand,vals)
             best_cand = np.argmax(np.mean(overall_ei, axis=1))
             
             if (best_cand >= numcand):
