@@ -105,7 +105,7 @@ def plot_1d(x, x_min, x_max,  mean, variance, ei, slice_at, var_name):
     else:
         slice_at_string = str(slice_at_list)
     print('PLOT1D:',var_name, 'Min:', x_min, 'Max:', x_max, slice_at_string)
-    pplt.title(r'Slice along ' + var_name + ' at ' + slice_at_string)     
+    pplt.title(r'Slice along ' + var_name)     
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
                 loc="upper right")
@@ -144,8 +144,7 @@ def plot_2d(x, y, mean, variance, ei, slice_at, v1_name, v2_name):
     slice_at_string = str(["%.2f" % member for member in slice_at_list])
     pplt.xlabel(r'$' + v1_name + '$')
     pplt.ylabel(r'$' + v2_name + '$')
-    pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
-               slice_at_string)
+    pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$')
 
     pplt.subplot(132)
     h_var = pplt.pcolormesh(x, y, 2*np.sqrt(variance.reshape(x.shape[0],
@@ -516,6 +515,7 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
                     v1_name + '.csv')
             save_to_csv(out_file, gmap, candidates, mean, variance, ei)
 
+            '''
             # Loop on second dimension
             grid_j = 0
             for v2 in gmap.variables:
@@ -563,7 +563,7 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
                                               v1_name + "_" + v2_name + ".csv")
                     save_to_csv(out_file, gmap, candidates, mean, variance, ei)
                     grid_j = grid_j + 1
-
+                '''
             grid_i = grid_i + 1
 
     #pplt.show()
