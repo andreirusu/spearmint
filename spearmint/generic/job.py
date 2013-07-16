@@ -28,24 +28,15 @@ def job(job_id, params):
     env = os.environ
     # set up minimal environment
     setEnvVar(env, 'SGE_ROOT', '/var/lib/gridengine')
-    setEnvVar(env, 'SPEARMINT_JOB_TORCH_PATH', '/dmt/software/bin:/Users/andreirusu/.torch/usr/bin')
+    setEnvVar(env, 'SPEARMINT_JOB_TORCH_PATH', '/dmt/software/bin')
     setEnvVar(env, 'SPEARMINT_JOB_TORCH_LIB_PATH', '/dmt/software/lib')
     # set up job
     setEnvVar(env, 'SPEARMINT_JOB_ID', job_id)
-    setEnvVar(env, 'SPEARMINT_JOB_THEREADS', 2)
-    setEnvVar(env, 'SPEARMINT_JOB_DATASET', '/Users/andreirusu/projects/experiment-utils/examples/datasets/mnist')
-    setEnvVar(env, 'SPEARMINT_JOB_SPOOL_DIR', '/data/andrei/jobdirs')
-    setEnvVar(env, 'SPEARMINT_JOB_TEST_OPTIONS', ' -l 50000 -s 5 ')
-    # XAE PARAMETERS
-    setEnvVar(env, 'ENCODER', 'rlu')
-    setEnvVar(env, 'DECODER', 'linear')
-    setEnvVar(env, 'MAX_UPDATES', 1e5)
-    setEnvVar(env, 'REPORT_EVERY', 49999)
-    setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER0', appendAllCommandLineOptions(params, 0))
-    setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER1', appendAllCommandLineOptions(params, 1))
-    setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER2', appendAllCommandLineOptions(params, 2))
+    setEnvVar(env, 'SPEARMINT_JOB_THEREADS', 1)
+    setEnvVar(env, 'SPEARMINT_JOB_SPOOL_DIR', './jobdirs')
+    # ADD JOB HYPER-PARAMETERS
+    setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER2', appendAllCommandLineOptions(params, 0))
 
-        
     # call job
     cmd = ['bash', 'job.sh']
     try:
@@ -58,8 +49,8 @@ def job(job_id, params):
     f = open(os.path.join(env['SPEARMINT_JOB_SPOOL_DIR'], os.path.basename(os.getcwd()), 'job' + str(job_id), 'res.txt'))
     lines = f.readlines()
     print(lines[3])
-    # optimizer tries to minimize error, so report error, NOT accuracy
-    result = 100 - float(lines[3].split(': ')[1])
+    # optimizer tries to minimize error
+    result = float(lines[3].split(': ')[1])
     print(result)
     print('Success!')
     return result
