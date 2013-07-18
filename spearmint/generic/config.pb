@@ -1,6 +1,5 @@
 language: PYTHON
 name:     "job"
-command:    "ae"
 
 variable {
  name: "learningRate"
