@@ -106,7 +106,7 @@ def slice_1d(v, dim, grid_size):
 
     return (x, np.hstack((left, x, right)))
 
-def plot_1d(x, mean, variance, slice_at, var_name):
+def plot_1d(x, mean, variance, ei, slice_at, var_name):
     h_fig = pplt.figure()
     h_mean, = pplt.plot(x, mean)
     sd = np.sqrt(variance)
@@ -114,6 +114,7 @@ def plot_1d(x, mean, variance, slice_at, var_name):
     lower = mean - sd
     h_bound, = pplt.plot(x, upper, 'r--')
     pplt.plot(x, lower, 'r--')
+    pplt.plot(x, ei, 'g--')
     pplt.xlabel(r'$' + var_name + '$')
     pplt.ylabel(r'$f$')
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -149,9 +150,9 @@ def slice_2d(v, dim1, dim2, side_size):
 
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
-def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
+def plot_2d(x, y, mean, variance, ei, slice_at, v1_name, v2_name):
     h_fig = pplt.figure()
-    pplt.subplot(121)
+    pplt.subplot(131)
     h_mean = pplt.pcolormesh(x, y,
                              mean.reshape(x.shape[0], y.shape[0]))
     pplt.colorbar(h_mean)
@@ -162,7 +163,7 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
 
-    pplt.subplot(122)
+    pplt.subplot(132)
     h_var = pplt.pcolormesh(x, y, 2*np.sqrt(variance.reshape(x.shape[0],
                                                    y.shape[0])))
     pplt.colorbar(h_var)
@@ -171,8 +172,16 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.title(r'2*Stdev, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
 
+    pplt.subplot(133)
+    h_ei = pplt.pcolormesh(x, y, ei.reshape(x.shape[0], y.shape[0]))
+    pplt.colorbar(h_var)
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'EI, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
+               slice_at_string)
+
     pplt.draw()
-    return (h_fig, h_mean, h_var)
+    return (h_fig, h_mean, h_var, h_ei)
 
 def evaluate_gp(chooser, candidates, complete, values, durations, pending):
     # Ask the choose to compute the GP on this grid
@@ -192,7 +201,13 @@ def evaluate_gp(chooser, candidates, complete, values, durations, pending):
                          np.nonzero(grid_idx == 1)[0],
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
-    return (mean, variance)
+
+    ei = chooser.plot_ei(grid, np.squeeze(values), durations,
+                         np.nonzero(grid_idx == 1)[0],
+                         np.nonzero(grid_idx == 2)[0],
+                         np.nonzero(grid_idx == 0)[0])
+    return (mean, variance, ei)
+
 
 def read_results(res_file, gmap):
     values = np.array([])
@@ -237,7 +252,7 @@ def read_results(res_file, gmap):
 
     return (values, complete, pending, durations)
 
-def save_to_csv(csv_file, gmap, candidates, mean, variance):
+def save_to_csv(csv_file, gmap, candidates, mean, variance, ei):
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
@@ -248,14 +263,14 @@ def save_to_csv(csv_file, gmap, candidates, mean, variance):
         else:
             output = output + str(v['name']) + ","
 
-    output = output + "Mean,Variance\n"
+    output = output + "Mean,Variance,EI\n"
 
     candidates = np.asarray(candidates)
     for i in range(0,candidates.shape[0]):
         params = gmap.unit_to_list(candidates[i,:])
         for p in params:
             output = output + str(p) + ","
-        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
+        output = output + str(mean[i]) + "," + str(variance[i]) + "," + str(ei[i]) + "\n"
 
     out = open(csv_file,"w")
     out.write(output)
@@ -328,13 +343,13 @@ def main_controller(options, args):
             # Evaluate on the marginal slice containing the best fit
             print('slicing along dim ' + str(grid_i))
             x, candidates = slice_1d(best_complete, grid_i, options.grid_size)
-            mean, variance = evaluate_gp(chooser,
+            mean, variance, ei = evaluate_gp(chooser,
                                        candidates, complete, values,
                                        durations, pending)
             # Add the observation noise to plot the predictive distribution
             if options.plot_predictive == 1:
                 variance = variance + chooser.noise
-            plot_1d(x, mean, variance, best_complete, v1_name)
+            plot_1d(x, mean, variance, ei, best_complete, v1_name)
             if options.plot_max < float("+inf"):
                 pplt.ylim(ymax=options.plot_max)
             if options.plot_min > float("-inf"):
@@ -350,7 +365,7 @@ def main_controller(options, args):
 
             pplt.savefig(os.path.join(plot_dir, v1_name + '.' + plot_format))
             out_file = os.path.join(plot_dir, v1_name + '.csv')
-            save_to_csv(out_file, gmap, candidates, mean, variance)
+            save_to_csv(out_file, gmap, candidates, mean, variance, ei)
 
             # Loop on second dimension
             grid_j = 0
@@ -368,20 +383,22 @@ def main_controller(options, args):
 
                     # Now let's evaluate the GP on a grid
                     x, y, candidates = slice_2d(best_complete, grid_i, grid_j, options.grid_size)
-                    mean, variance = evaluate_gp(chooser,
+                    mean, variance, ei = evaluate_gp(chooser,
                                                    candidates, complete, values,
                                                    durations, pending)
-                    h, h_mean, h_var = plot_2d(x, y, mean, variance, best_complete, v1_name,
+                    h, h_mean, h_var, h_ei = plot_2d(x, y, mean, variance, ei, best_complete, v1_name,
                             v2_name)
                     if options.plot_max < float("+inf"):
                         h_mean.set_clim(vmax=options.plot_max)
                         h_var.set_clim(vmax=options.plot_max)
+                        h_ei.set_clim(vmax=options.plot_max)
                     if options.plot_min > float("-inf"):
                         h_mean.set_clim(vmin=options.plot_min)
                         h_var.set_clim(vmin=options.plot_min)
+                        h_ei.set_clim(vmin=options.plot_min)
                     # If the space is entirely 2D, plot the evaluation points
                     if gmap.cardinality == 2:
-                        for i in (121,122):
+                        for i in (131,132,133):
                             pplt.subplot(i)
                             xlim = pplt.xlim()
                             ylim = pplt.ylim()
@@ -396,7 +413,7 @@ def main_controller(options, args):
                                               plot_format))
                     out_file = os.path.join(plot_dir,
                                               v1_name + "_" + v2_name + ".csv")
-                    save_to_csv(out_file, gmap, candidates, mean, variance)
+                    save_to_csv(out_file, gmap, candidates, mean, variance, ei)
                     grid_j = grid_j + 1
 
             grid_i = grid_i + 1

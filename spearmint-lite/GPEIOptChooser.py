@@ -752,3 +752,68 @@ class GPEIOptChooser:
         func_v = self.amp2*(1+1e-6) - np.sum(beta**2, axis=0)
 
         return (func_m, func_v)
+
+    # Given a set of completed 'experiments' in the unit hypercube with
+    # corresponding objective 'values', pick from the next experiment to
+    # run according to the acquisition function.
+    def plot_ei(self, grid, values, durations,
+             candidates, pending, complete):
+
+        # Don't bother using fancy GP stuff at first.
+        if complete.shape[0] < 2:
+            return int(candidates[0])
+
+        # Perform the real initialization.
+        if self.D == -1:
+            self._real_init(grid.shape[1], values[complete])
+    
+        # Grab out the relevant sets.
+        comp = grid[complete,:]
+        cand = grid[candidates,:]
+        pend = grid[pending,:]
+        vals = values[complete]
+        numcand = cand.shape[0]
+
+        if self.mcmc_iters > 0:
+
+            # Possibly burn in.
+            if self.needs_burnin:
+                for mcmc_iter in xrange(self.burnin):
+                    self.sample_hypers(comp, vals)
+                    sys.stderr.write("BURN %d/%d] mean: %.2f  amp: %.2f "
+                                     "noise: %.4f  min_ls: %.4f  max_ls: %.4f\n"
+                                     % (mcmc_iter+1, self.burnin, self.mean, 
+                                        np.sqrt(self.amp2), self.noise, 
+                                        np.min(self.ls), np.max(self.ls)))
+                self.needs_burnin = False
+
+            # Sample from hyperparameters.
+            # Adjust the candidates to hit ei peaks
+            self.hyper_samples = []
+            for mcmc_iter in xrange(self.mcmc_iters):
+                self.sample_hypers(comp, vals)
+                sys.stderr.write("%d/%d] mean: %.2f  amp: %.2f  noise: %.4f "
+                                 "min_ls: %.4f  max_ls: %.4f\n"
+                                 % (mcmc_iter+1, self.mcmc_iters, self.mean,
+                                    np.sqrt(self.amp2), self.noise,
+                                    np.min(self.ls), np.max(self.ls)))            
+            self.dump_hypers()
+
+            overall_ei = self.ei_over_hypers(comp,pend,cand,vals)
+
+            print('shape is' + str(overall_ei.shape))
+            return np.average(overall_ei, 1)
+
+        else:
+            # Optimize hyperparameters
+            self.optimize_hypers(comp, vals)
+
+            sys.stderr.write("mean: %.2f  amp: %.2f  noise: %.4f  "
+                             "min_ls: %.4f  max_ls: %.4f\n"
+                             % (self.mean, np.sqrt(self.amp2), self.noise,
+                                np.min(self.ls), np.max(self.ls)))
+
+            ei = self.compute_ei(comp, pend, cand, vals)
+
+            return ei
+

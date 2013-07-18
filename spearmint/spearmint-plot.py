@@ -87,7 +87,7 @@ def slice_1d(v, dim, grid_size):
     return (x, np.hstack((left, x, right)))
 
 
-def plot_1d(x, x_min, x_max,  mean, variance, slice_at, var_name):
+def plot_1d(x, x_min, x_max,  mean, variance, ei, slice_at, var_name):
     h_fig = pplt.figure(figsize=(10, 8), dpi=100)
     x = x * (x_max - x_min) + x_min
     h_mean, = pplt.plot(x, mean, linewidth=2.0)
@@ -96,6 +96,7 @@ def plot_1d(x, x_min, x_max,  mean, variance, slice_at, var_name):
     lower = mean - sd
     h_bound, = pplt.plot(x, upper, 'r--', linewidth=2.0)
     pplt.plot(x, lower, 'r--', linewidth=2.0)
+    pplt.plot(x, ei, 'g--', linewidth=2.0)
     pplt.xlabel(r'$' + var_name + '$')
     pplt.ylabel(r'$f$')
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -103,7 +104,6 @@ def plot_1d(x, x_min, x_max,  mean, variance, slice_at, var_name):
         slice_at_string = str(["%.2f" % member for member in slice_at_list])
     else:
         slice_at_string = str(slice_at_list)
-    print('PLOT1D:',var_name, 'Min:', x_min, 'Max:', x_max, slice_at_string)
     pplt.title(r'Slice along ' + var_name + ' at ' + slice_at_string)     
     pplt.legend([h_mean, h_bound],
                 ["Mean", "+/- Standard dev."],
@@ -133,10 +133,10 @@ def slice_2d(v, x_min, x_max, y_min, y_max, dim1, dim2, side_size):
 
     return (x, y, np.hstack((left, xxcol, middle, yycol, right)))
 
-def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
+def plot_2d(x, y, mean, variance, ei, slice_at, v1_name, v2_name):
     h_fig = pplt.figure(figsize=(20, 8), dpi=100)
-    pplt.subplot(121)
-    h_mean = pplt.pcolormesh(x, y, 
+    pplt.subplot(131)
+    h_mean = pplt.pcolormesh(x, y,
                              mean.reshape(x.shape[0], y.shape[0]))
     pplt.colorbar(h_mean)
     slice_at_list = np.squeeze(np.asarray(slice_at)).tolist()
@@ -146,7 +146,7 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.title(r'Mean, slice along $( ' + v1_name + ',' + v2_name + ')$ at ' +
                slice_at_string)
 
-    pplt.subplot(122)
+    pplt.subplot(132)
     h_var = pplt.pcolormesh(x, y, 2*np.sqrt(variance.reshape(x.shape[0],
                                                    y.shape[0])))
     pplt.colorbar(h_var)
@@ -154,8 +154,15 @@ def plot_2d(x, y, mean, variance, slice_at, v1_name, v2_name):
     pplt.ylabel(r'$' + v2_name + '$')
     pplt.title(r'2*Stdev, slice along $( ' + v1_name + ',' + v2_name + ')$' )
 
+    pplt.subplot(133)
+    h_ei = pplt.pcolormesh(x, y, ei.reshape(x.shape[0], y.shape[0]))
+    pplt.colorbar(h_var)
+    pplt.xlabel(r'$' + v1_name + '$')
+    pplt.ylabel(r'$' + v2_name + '$')
+    pplt.title(r'EI, slice along $( ' + v1_name + ',' + v2_name + ')$')
+
     pplt.draw()
-    return (h_fig, h_mean, h_var)
+    return (h_fig, h_mean, h_var, h_ei)
 
 
 def evaluate_gp(chooser, candidates, complete, values, durations):
@@ -172,13 +179,13 @@ def evaluate_gp(chooser, candidates, complete, values, durations):
     #print('complete is' + str(complete))
     #print('values is' + str(values))
 
-    mean, variance = chooser.plot(grid, np.squeeze(values), durations,
+    ei, mean, variance = chooser.plot_ei(grid, np.squeeze(values), durations,
                          np.nonzero(grid_idx == 1)[0],
                          np.nonzero(grid_idx == 2)[0],
                          np.nonzero(grid_idx == 0)[0])
-    return (mean, variance)
+    return (mean, variance, ei)
 
-def save_to_csv(csv_file, gmap, candidates, mean, variance):
+def save_to_csv(csv_file, gmap, candidates, mean, variance, ei):
     # Now lets write this evaluation to the CSV plot file
     output = ""
     for v in gmap.variables:
@@ -189,13 +196,13 @@ def save_to_csv(csv_file, gmap, candidates, mean, variance):
         else:
             output = output + str(v['name']) + ","
 
-    output = output + "Mean,Variance\n"
+    output = output + "Mean,Variance,EI\n"
 
     candidates = np.asarray(candidates)
     for i in range(0,candidates.shape[0]):
         for p in candidates[i,:]:
             output = output + str(p) + ","
-        output = output + str(mean[i]) + "," + str(variance[i]) + "\n"
+        output = output + str(mean[i]) + "," + str(variance[i]) + "," + str(ei[i]) + "\n"
 
     out = open(csv_file,"w")
     out.write(output)
@@ -220,7 +227,7 @@ def main():
                       type="int", default=1000)
     parser.add_option("--method", dest="chooser_module",
                       help="Method for choosing experiments.",
-                      type="string", default="GPEIChooser")
+                      type="string", default="GPEIOptChooser")
     parser.add_option("--method-args", dest="chooser_args",
                       help="Arguments to pass to chooser module.",
                       type="string", default="")
@@ -248,6 +255,15 @@ def main():
     parser.add_option("--plot-min", dest="plot_min",
                       help="Max value of the function for all plots.",
                       type="float", default=float("-inf"))
+    parser.add_option("--mcmc-iters", dest="mcmc_iters",
+                      help="Number of MCMC iterations, -1 to keep to current value.", 
+                      type="int", default=-1)
+    parser.add_option("--no-plot", dest="no_plot",
+                      help="Do not plot",
+                      action="store_true", default=0)
+    parser.add_option("--no-csv", dest="no_csv",
+                      help="Do not store CSV",
+                      action="store_true", default=0)
 
 
     (options, args) = parser.parse_args()
@@ -469,6 +485,13 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     #print('Best complete is ' + str(best_complete))
     #print('best_complete.shape is ' + str(best_complete.shape))
 
+    # Avoid MCMC if not needed
+    if options.mcmc_iters > -1:
+        chooser.mcmc_iters = options.mcmc_iters
+
+    # Fit the hyperparameters only once for the whole plotting
+    chooser.prepare_evaluation(grid, values, complete)
+
     # Loop on first dimension
     grid_i = 0
     for v1 in gmap.variables:
@@ -478,31 +501,36 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
             if v1_dim > 1:
                 v1_name = v1_name + "_" + str(i+1)
 
+            print('PLOT1D:',v1_name, 'Min:', v1['min'], 'Max:', v1['max'])
+
             # Evaluate on the marginal slice containing the best fit
             print('slicing along dim ' + str(grid_i))
             x, candidates = slice_1d(best_complete, grid_i, options.grid_size)
-            mean, variance = evaluate_gp(chooser, 
+            mean, variance, ei = evaluate_gp(chooser, 
                     candidates, grid[complete, :], values[complete],
                     durations[complete])
-            plot_1d(x, v1['min'], v1['max'], mean, variance, best_complete, v1_name)
-            if options.plot_max < float("+inf"):
-                pplt.ylim(ymax=options.plot_max)
-            if options.plot_min > float("-inf"):
-                pplt.ylim(ymin=options.plot_min)
-           
-           
-            # If the space is entirely 1D, plot the evaluation points
-            if gmap.cardinality == 1:
-                ylim = pplt.ylim()
-                pplt.scatter(np.asarray(complete).squeeze(),
-                           np.asarray(values).squeeze(), 
-                             c='lime', marker='o', s=dot_size)
-                pplt.ylim(ylim)
-            
-            pplt.savefig(os.path.join(plot_dir, '1D',  v1_name + '.png'))
-            out_file = os.path.join(plot_dir, 'CSV',  '1D', 
-                    v1_name + '.csv')
-            save_to_csv(out_file, gmap, candidates, mean, variance)
+            if not options.no_plot:
+                plot_1d(x, v1['min'], v1['max'], mean, variance, ei, best_complete, v1_name)
+                if options.plot_max < float("+inf"):
+                    pplt.ylim(ymax=options.plot_max)
+                if options.plot_min > float("-inf"):
+                    pplt.ylim(ymin=options.plot_min)
+               
+               
+                # If the space is entirely 1D, plot the evaluation points
+                if gmap.cardinality == 1:
+                    ylim = pplt.ylim()
+                    pplt.scatter(np.asarray(complete).squeeze(),
+                               np.asarray(values).squeeze(), 
+                                 c='lime', marker='o', s=dot_size)
+                    pplt.ylim(ylim)
+                
+                pplt.savefig(os.path.join(plot_dir, '1D',  v1_name + '.png'))
+
+            if not options.no_csv:
+                out_file = os.path.join(plot_dir, 'CSV',  '1D', 
+                        v1_name + '.csv')
+                save_to_csv(out_file, gmap, candidates, mean, variance, ei)
 
             # Loop on second dimension
             grid_j = 0
@@ -515,39 +543,47 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
                         continue
 
                     v2_name = str(v2['name'])
+
                     if v2_dim > 1:
                         v2_name = v2_name + "_" + str(j+1)
 
+                    print('PLOT2D:',v1_name, ' vs ', v2_name)
+
                     # Now let's evaluate the GP on a grid
                     x, y, candidates = slice_2d(best_complete, v1['min'], v1['max'], v2['min'], v2['max'], grid_i, grid_j, options.grid_size)
-                    mean, variance = evaluate_gp(chooser,
+                    mean, variance, ei = evaluate_gp(chooser,
                             candidates, grid[complete, :], values[complete],
                             durations[complete])                    
-                    h, h_mean, h_var = plot_2d(x, y, mean, variance, best_complete, v1_name,
-                            v2_name)
-                    if options.plot_max < float("+inf"):
-                        h_mean.set_clim(vmax=options.plot_max)
-                        h_var.set_clim(vmax=options.plot_max)
-                    if options.plot_min > float("-inf"):
-                        h_mean.set_clim(vmin=options.plot_min)
-                        h_var.set_clim(vmin=options.plot_min)
-                    # If the space is entirely 2D, plot the evaluation points
-                    if gmap.cardinality == 2:
-                        for i in (121,122):
-                            pplt.subplot(i)
-                            xlim = pplt.xlim()
-                            ylim = pplt.ylim()
-                            pplt.scatter(np.asarray(complete[:,0]).squeeze(),
-                                         np.asarray(complete[:,1]).squeeze(),
-                                         c='lime', marker='o', s=dot_size)
-                            pplt.xlim(xlim)
-                            pplt.ylim(ylim)
+                    if not options.no_plot:
+                        h, h_mean, h_var, h_ei = plot_2d(x, y, mean, variance, ei, best_complete, v1_name,
+                                v2_name)
+                        if options.plot_max < float("+inf"):
+                            h_mean.set_clim(vmax=options.plot_max)
+                            h_var.set_clim(vmax=options.plot_max)
+                            h_ei.set_clim(vmax=options.plot_max)
+                        if options.plot_min > float("-inf"):
+                            h_mean.set_clim(vmin=options.plot_min)
+                            h_var.set_clim(vmin=options.plot_min)
+                            h_ei.set_clim(vmin=options.plot_min)
+                        # If the space is entirely 2D, plot the evaluation points
+                        if gmap.cardinality == 2:
+                            for i in (131,132,133):
+                                pplt.subplot(i)
+                                xlim = pplt.xlim()
+                                ylim = pplt.ylim()
+                                pplt.scatter(np.asarray(complete[:,0]).squeeze(),
+                                             np.asarray(complete[:,1]).squeeze(),
+                                             c='lime', marker='o', s=dot_size)
+                                pplt.xlim(xlim)
+                                pplt.ylim(ylim)
 
-                    pplt.savefig(os.path.join(plot_dir, '2D',  
-                                              v1_name + "_" + v2_name + ".png"))
-                    out_file = os.path.join(plot_dir,  'CSV', '2D',  
-                                              v1_name + "_" + v2_name + ".csv")
-                    save_to_csv(out_file, gmap, candidates, mean, variance)
+                        pplt.savefig(os.path.join(plot_dir, '2D',  
+                                                  v1_name + "_" + v2_name + ".png"))
+
+                    if not options.no_csv:
+                        out_file = os.path.join(plot_dir,  'CSV', '2D',  
+                                                  v1_name + "_" + v2_name + ".csv")
+                        save_to_csv(out_file, gmap, candidates, mean, variance, ei)
                     grid_j = grid_j + 1
 
             grid_i = grid_i + 1
