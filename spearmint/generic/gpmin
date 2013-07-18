@@ -1,18 +1,18 @@
 #!/bin/bash
 
 ### TODO: move to permanent location
-GPMIN_HOME=/Users/andreirusu/projects/spearmint/spearmint/generic
+GPMIN_HOME=/Users/andreirusu/projects/spearmint/spearmint
 
 ### CHECK THAT THE FIRST ARGUMENT IS AN EXISTING FILE
 if [[ "$#" -ge "1" ]] 
 then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
-    EXP_DIR=$0$DATE 
-    mkdir -p  $EXP_DIR   
+    EXP_DIR=$PWD/$0$DATE 
+    mkdir -p $EXP_DIR   
     # put together a working directory for spearmint 
     cp $1 $EXP_DIR
-    cp $GPMIN_HOME/job.py $EXP_DIR
-    cp $GPMIN_HOME/job.sh $EXP_DIR
+    cp $GPMIN_HOME/generic/job.py $EXP_DIR
+    cp $GPMIN_HOME/generic/job.sh $EXP_DIR
     cd $EXP_DIR
     echo "Current experiment: "$PWD
 else
@@ -21,5 +21,5 @@ else
 fi
 
 echo 'Status: '
-crunch -b y 'python spearmint.py --method=GPEIOptChooser --max-concurrent=1 --max-finished-jobs=0 --grid-seed=1 `dirname $1`'
+/dmt3/software/bin/crunch -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=1 --max-finished-jobs=1 --grid-seed=1 $EXP_DIR "
 
