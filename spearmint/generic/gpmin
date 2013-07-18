@@ -1,5 +1,6 @@
 #!/bin/bash
 
+$GPMIN_HOME=/Users/andreirusu/spearmint/spearmint/generic
 
 ### CHECK THAT THE FIRST ARGUMENT IS AN EXISTING FILE
 if [[ "$#" -ge "1" ]] 
@@ -7,8 +8,10 @@ then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
     EXP_DIR=$0$DATE 
     mkdir -p  $EXP_DIR   
-    # copy config file in directory 
+    # put together a working directory for spearmint 
     cp $1 $EXP_DIR
+    cp $GPMIN_HOME/job.py $EXP_DIR
+    cp $GPMIN_HOME/job.py $EXP_DIR
     cd $EXP_DIR
     echo "Current experiment: "$PWD
 else
@@ -16,4 +19,6 @@ else
     exit
 fi
 
-#python spearmint.py --method=GPEIOptChooser --max-concurrent=10 --max-finished-jobs=1000 --grid-seed=1 `dirname $0`
+echo 'Status: '
+crunch -b y 'python spearmint.py --method=GPEIOptChooser --max-concurrent=10 --max-finished-jobs=0 --grid-seed=1 `dirname $0`'
+
