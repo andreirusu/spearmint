@@ -12,7 +12,6 @@ then
     # put together a working directory for spearmint 
     cp $1 $EXP_DIR
     cp $GPMIN_HOME/generic/job.py $EXP_DIR
-    cp $GPMIN_HOME/generic/job.sh $EXP_DIR
     cd $EXP_DIR
     echo "Current experiment: "$PWD
 else
