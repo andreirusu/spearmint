@@ -28,29 +28,32 @@ def job(job_id, params):
     env = os.environ
     # set up minimal environment
     setEnvVar(env, 'SGE_ROOT', '/var/lib/gridengine')
-    setEnvVar(env, 'SPEARMINT_JOB_TORCH_PATH', '/dmt/software/bin')
-    setEnvVar(env, 'SPEARMINT_JOB_TORCH_LIB_PATH', '/dmt/software/lib')
     # set up job
-    setEnvVar(env, 'SPEARMINT_JOB_ID', job_id)
-    setEnvVar(env, 'SPEARMINT_JOB_THEREADS', 1)
-    setEnvVar(env, 'SPEARMINT_JOB_SPOOL_DIR', './jobdirs')
-    # ADD JOB HYPER-PARAMETERS
-    setEnvVar(env, 'SPEARMINT_JOB_OPTIONS_LAYER2', appendAllCommandLineOptions(params, 0))
-
+    setEnvVar(env, 'OMP_NUM_THREADS', 1)
+    # ADD JOB PARAMETERS
+    outfilename = os.path.join('output', 'cost.' + env['JOB_ID'] + '.txt')
+    commandStr = appendAllCommandLineOptions(params, 0) + ' --write-cost-to-file ' + outfilename
+   
     # call job
-    cmd = ['bash', 'job.sh']
+    import shlex
+    args = shlex.split('/bin/bash ' +  os.path.join(os.getcwd(), 'job.sh') + commandStr)
+    print(env)
+    print(args)
     try:
-        p = sp.Popen(cmd, env=env)
+        p = sp.Popen(args, env=env)
+        #p = sp.Popen(args, env=env, cwd=env['SGE_JOB_SPOOL_DIR'])
         p.wait()
     except:
         print(sys.exc_info())
     
     # read back result
-    f = open(os.path.join(env['SPEARMINT_JOB_SPOOL_DIR'], os.path.basename(os.getcwd()), 'job' + str(job_id), 'res.txt'))
+    print(os.getcwd())
+    f = open(outfilename)
+    #f = open(os.path.join(env['SGE_JOB_SPOOL_DIR'], outfilename))
     lines = f.readlines()
-    print(lines[3])
+    print(lines[0])
     # optimizer tries to minimize error
-    result = float(lines[3].split(': ')[1])
+    result = float(lines[0])
     print(result)
     print('Success!')
     return result
@@ -60,14 +63,4 @@ def main(job_id, params):
     print 'Anything printed here will end up in the output directory of job #:', str(job_id)
     print params
     return job(job_id, params)
-
-
-if __name__ == '__main__' :
-    params = {}
-    params['learningRate'] = [0.1, 0.1, 0.1]
-    params['momentum'] = [0.9, 0.9, 0.9]
-    params['hidden'] = [1000, 1000, 1000]
-    params['dropoutRatio'] = [0.3, 0.5, 0.5]
-    params['L1Cost'] = [0.1, 0.1, 0.1]
-    main(12345, params)
 

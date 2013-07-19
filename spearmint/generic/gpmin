@@ -3,8 +3,37 @@
 ### TODO: move to permanent location
 GPMIN_HOME=/Users/andreirusu/projects/spearmint/spearmint
 
+### SPEARMINT DEFAULT OPTIONS
+MAX_CONCURRENT=10
+MAX_JOBS=5
+GRID_SEED=1
+
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+if [ "$#" -lt "2" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name CONFIG-FILE COMMAND 
+    
+The first two arguments are compulsory.   
+
+CONFIG-FILE must be a valid spearmint configuration file, with a few restrictions:
+    All the variable names must be supported as command line arguments by the target executable (case sensitive).
+    Only single dimensional variables are supported; please set \"size\" to 1 for all variables in the CONFIG-FILE. 
+
+COMMAND can be any bash command-line call which is valid after: 
+    (1) all the options in the CONFIG-FILE are appended with their respective values, and
+    (2) the \"--write-cost-to-file OUTFILE\" options is appended.
+
+Hence, the only restrictions are that COMMAND must write the minimization objective (cost) to OUTFILE and all the CONFIG-FILE variable must be valid command-line arguments when postfixed to COMMAND.  
+
+
+"
+    exit
+fi
+
 ### CHECK THAT THE FIRST ARGUMENT IS AN EXISTING FILE
-if [[ "$#" -ge "1" ]] 
+if [[ -e "$1" ]] 
 then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
     EXP_DIR=$PWD/$0$DATE 
@@ -19,6 +48,15 @@ else
     exit
 fi
 
-echo 'Status: '
-/dmt3/software/bin/crunch -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=1 --max-finished-jobs=1 --grid-seed=1 $EXP_DIR "
+### SET THE COMMAND TO RUN
+SPEARMINT_GPMIN_CMD="${@:2}" 
+
+echo "COMMAND: "$SPEARMINT_GPMIN_CMD
+echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
+
+### SCHEDULE SPEARMINT JOB
+echo 'Starting spearmint on SGE...'
+/dmt3/software/bin/crunch -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
+
+
 
