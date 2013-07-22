@@ -1,7 +1,8 @@
 #!/bin/bash
 
 ### TODO: move to permanent location
-GPMIN_HOME=/Users/andreirusu/projects/spearmint/spearmint
+#GPMIN_HOME=/Users/andreirusu/projects/spearmint/spearmint
+GPMIN_HOME=/dmt3/software/spearmint/spearmint
 
 ### SPEARMINT DEFAULT OPTIONS
 MAX_CONCURRENT=10
@@ -35,7 +36,7 @@ fi
 if [[ -e "$1" ]] 
 then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
-    EXP_DIR=$PWD/$0$DATE 
+    EXP_DIR=$PWD/`basename $0`$DATE 
     mkdir -p $EXP_DIR   
     # put together a working directory for spearmint 
     cp $1 $EXP_DIR
