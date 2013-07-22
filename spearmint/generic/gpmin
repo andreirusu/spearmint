@@ -25,8 +25,7 @@ COMMAND can be any bash command-line call which is valid after:
     (1) all the options in the CONFIG-FILE are appended with their respective values, and
     (2) the \"--write-cost-to-file OUTFILE\" options is appended.
 
-Hence, the only restrictions are that COMMAND must write the minimization objective (cost) to OUTFILE and all the CONFIG-FILE variable must be valid command-line arguments when postfixed to COMMAND.  
-
+Hence, the only restrictions are that COMMAND must write the minimization objective (cost) to OUTFILE and all the CONFIG-FILE variable must be valid command-line arguments when postfixed to COMMAND. Please only use absolute file paths in COMMAND.
 
 "
     exit
