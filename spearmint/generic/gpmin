@@ -49,14 +49,14 @@ else
 fi
 
 ### SET THE COMMAND TO RUN
-SPEARMINT_GPMIN_CMD="${@:2}" 
+SPEARMINT_GPMIN_CMD="${@:2}"' $* ' 
 
 echo "COMMAND: "$SPEARMINT_GPMIN_CMD
 echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
 
 ### SCHEDULE SPEARMINT JOB
 echo 'Starting spearmint on SGE...'
-/dmt3/software/bin/crunch -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
+/dmt3/software/bin/crunch -q torch.q -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
 
 
 
