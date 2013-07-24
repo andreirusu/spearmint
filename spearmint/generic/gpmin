@@ -7,7 +7,7 @@ GPMIN_HOME=/dmt3/software/spearmint/spearmint
 ### SPEARMINT DEFAULT OPTIONS
 MAX_CONCURRENT=10
 MAX_JOBS=1000
-GRID_SEED=1
+GRID_SEED=$RANDOM
 
 ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
 if [ "$#" -lt "2" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" ] 
