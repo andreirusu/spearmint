@@ -31,7 +31,7 @@ def job(job_id, params):
     # set up job
     setEnvVar(env, 'OMP_NUM_THREADS', 1)
     # ADD JOB PARAMETERS
-    outfilename = os.path.join('output', 'cost.' + env['JOB_ID'] + '.txt')
+    outfilename = os.path.join(os.getcwd(), 'output', 'cost.' + env['JOB_ID'] + '.txt')
     commandStr = appendAllCommandLineOptions(params, 0) + ' --write-cost-to-file ' + outfilename
    
     # call job

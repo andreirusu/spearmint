@@ -36,10 +36,10 @@ fi
 if [[ -e "$1" ]] 
 then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
-    EXP_DIR=$PWD/`basename $0`$DATE 
+    EXP_DIR=$PWD/`basename $0`$DATE'.'$GRID_SEED'.'$$ 
     mkdir -p $EXP_DIR   
     # put together a working directory for spearmint 
-    cp $1 $EXP_DIR
+    cp $1 $EXP_DIR/config.pb
     cp $GPMIN_HOME/generic/job.py $EXP_DIR
     cd $EXP_DIR
     echo "Current experiment: "$PWD
