@@ -254,7 +254,7 @@ def main_controller(options, args):
     # Loop until we run out of jobs.
     while True:
         attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
-        time.sleep(1)
+        time.sleep(0.1)
  
 def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     import drmaa
