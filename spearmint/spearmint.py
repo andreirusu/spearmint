@@ -364,66 +364,67 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
         sys.stderr.write("There are no candidates left.  Exiting.\n")
         sys.exit(0)
 
-    if pending.shape[0] >= options.max_concurrent:
-        sys.stderr.write("Maximum number of jobs (%d) pending.\n"
-                         % (options.max_concurrent))
-        return
+    while True:
+        if pending.shape[0] >= options.max_concurrent:
+            sys.stderr.write("Maximum number of jobs (%d) pending.\n"
+                             % (options.max_concurrent))
+            return
 
-    # Ask the chooser to actually pick one.
-    job_id = chooser.next(grid, values, durations, candidates, pending,
-                          complete)
+        # Ask the chooser to actually pick one.
+        job_id = chooser.next(grid, values, durations, candidates, pending,
+                              complete)
 
-    # If the job_id is a tuple, then the chooser picked a new job.
-    # We have to add this to our grid
-    if isinstance(job_id, tuple):
-        (job_id, candidate) = job_id
-        job_id = expt_grid.add_to_grid(candidate)
+        # If the job_id is a tuple, then the chooser picked a new job.
+        # We have to add this to our grid
+        if isinstance(job_id, tuple):
+            (job_id, candidate) = job_id
+            job_id = expt_grid.add_to_grid(candidate)
 
-    sys.stderr.write("Selected job %d from the grid.\n" % (job_id))
+        sys.stderr.write("Selected job %d from the grid.\n" % (job_id))
 
-    # Convert this back into an interpretable job and add metadata.
-    job = Job()
-    job.id        = job_id
-    job.expt_dir  = expt_dir
-    job.name      = expt.name
-    job.language  = expt.language
-    job.status    = 'submitted'
-    job.submit_t  = int(time.time())
-    job.param.extend(expt_grid.get_params(job_id))
+        # Convert this back into an interpretable job and add metadata.
+        job = Job()
+        job.id        = job_id
+        job.expt_dir  = expt_dir
+        job.name      = expt.name
+        job.language  = expt.language
+        job.status    = 'submitted'
+        job.submit_t  = int(time.time())
+        job.param.extend(expt_grid.get_params(job_id))
 
-    # Make sure we have a job subdirectory.
-    job_subdir = os.path.join(expt_dir, 'jobs')
-    if not os.path.exists(job_subdir):
-        os.mkdir(job_subdir)
+        # Make sure we have a job subdirectory.
+        job_subdir = os.path.join(expt_dir, 'jobs')
+        if not os.path.exists(job_subdir):
+            os.mkdir(job_subdir)
 
-    # Name this job file.
-    job_file = os.path.join(job_subdir,
-                            '%08d.pb' % (job_id))
+        # Name this job file.
+        job_file = os.path.join(job_subdir,
+                                '%08d.pb' % (job_id))
 
-    # Store the job file.
-    save_job(job_file, job)
+        # Store the job file.
+        save_job(job_file, job)
 
-    # Make sure there is a directory for output.
-    output_subdir = os.path.join(expt_dir, 'output')
-    if not os.path.exists(output_subdir):
-        os.mkdir(output_subdir)
-    output_file = os.path.join(output_subdir,
-                               '%08d.out' % (job_id))
+        # Make sure there is a directory for output.
+        output_subdir = os.path.join(expt_dir, 'output')
+        if not os.path.exists(output_subdir):
+            os.mkdir(output_subdir)
+        output_file = os.path.join(output_subdir,
+                                   '%08d.out' % (job_id))
 
-    queue_id, msg = sge_submit("%s-%08d" % (expt_name, job_id),
-                             output_file,
-                             DEFAULT_MODULES,
-                             job_file, work_dir)
-    if queue_id is None:
-        sys.stderr.write("Failed to submit job: %s" % (msg))
-        sys.stderr.write("Deleting job file.\n")
-        os.unlink(job_file)
-        return
-    else:
-        sys.stderr.write("Submitted as job %d\n" % (queue_id))
+        queue_id, msg = sge_submit("%s-%08d" % (expt_name, job_id),
+                                 output_file,
+                                 DEFAULT_MODULES,
+                                 job_file, work_dir)
+        if queue_id is None:
+            sys.stderr.write("Failed to submit job: %s" % (msg))
+            sys.stderr.write("Deleting job file.\n")
+            os.unlink(job_file)
+            return
+        else:
+            sys.stderr.write("Submitted as job %d\n" % (queue_id))
 
-    # Now, update the experiment status to submitted.
-    expt_grid.set_submitted(job_id, queue_id)
+        # Now, update the experiment status to submitted.
+        expt_grid.set_submitted(job_id, queue_id)
 
     return
 
