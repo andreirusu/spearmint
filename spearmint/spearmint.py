@@ -256,7 +256,7 @@ def main_controller(options, args):
     # Loop until we run out of jobs.
     while True:
         attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
-        time.sleep(0.01)
+        time.sleep(1)
  
 def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     import drmaa
@@ -425,7 +425,13 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
 
         # Now, update the experiment status to submitted.
         expt_grid.set_submitted(job_id, queue_id)
+        ###### Andrei: submit all possible jobs
+        # Returns lists of indices.
+        candidates = expt_grid.get_candidates()
         pending    = expt_grid.get_pending()
+        complete   = expt_grid.get_complete()
+        sys.stderr.write("%d candidates   %d pending   %d complete\n" % 
+                         (candidates.shape[0], pending.shape[0], complete.shape[0]))
         time.sleep(0.01)
 
     return
