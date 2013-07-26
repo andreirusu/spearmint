@@ -56,7 +56,7 @@ echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
 
 ### SCHEDULE SPEARMINT JOB
 echo 'Starting spearmint on SGE...'
-/dmt3/software/bin/crunch -q torch.q -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
+/dmt3/software/bin/crunch -q torch.q -o gpmin.log  -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
 
 
 
