@@ -425,6 +425,8 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
 
         # Now, update the experiment status to submitted.
         expt_grid.set_submitted(job_id, queue_id)
+        pending    = expt_grid.get_pending()
+        time.sleep(0.01)
 
     return
 
