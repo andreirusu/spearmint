@@ -5,9 +5,20 @@
 GPMIN_HOME=/dmt3/software/spearmint/spearmint
 
 ### SPEARMINT DEFAULT OPTIONS
-MAX_CONCURRENT=10
-MAX_JOBS=1000
-GRID_SEED=$RANDOM
+if [ -z "$GPMIN_MAX_CONCURRENT"  ]
+then
+    GPMIN_MAX_CONCURRENT=10
+fi
+
+if [ -z "$GPMIN_MAX_JOBS"  ]
+then
+    GPMIN_MAX_JOBS=1000
+fi
+
+if [ -z "$GPMIN_GRID_SEED"  ]
+then
+    GPMIN_GRID_SEED=$RANDOM
+fi
 
 ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
 if [ "$#" -lt "2" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" ] 
@@ -36,13 +47,16 @@ fi
 if [[ -e "$1" ]] 
 then
     DATE=$(date +".%Y.%m.%d.%H.%M.%S")
-    EXP_DIR=$PWD/`basename $0`$DATE'.'$GRID_SEED'.'$$ 
+    EXP_DIR=$PWD/`basename $0`$DATE'.'$GPMIN_GRID_SEED'.'$$ 
     mkdir -p $EXP_DIR   
     # put together a working directory for spearmint 
     cp $1 $EXP_DIR/config.pb
     cp $GPMIN_HOME/generic/job.py $EXP_DIR
     cd $EXP_DIR
     echo "Current experiment: "$PWD
+    echo "Max concurrent jobs: "$GPMIN_MAX_CONCURRENT
+    echo "Max total jobs: "$GPMIN_MAX_JOBS
+    echo "Grid seed: "$GPMIN_GRID_SEED
 else
     echo 'Specify the path to a config file!'
     exit
@@ -56,7 +70,7 @@ echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
 
 ### SCHEDULE SPEARMINT JOB
 echo 'Starting spearmint on SGE...'
-/dmt3/software/bin/crunch -q torch.q -o gpmin.log  -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$MAX_CONCURRENT --max-finished-jobs=$MAX_JOBS --grid-seed=$GRID_SEED $EXP_DIR "
+/dmt3/software/bin/crunch -q torch.q -o gpmin.log  -V -b y "cd $GPMIN_HOME; python spearmint.py --method=GPEIOptChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR "
 
 
 
