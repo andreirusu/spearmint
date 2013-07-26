@@ -2,7 +2,7 @@
 
 ### TODO: move to permanent location
 SPEARMINT_HOME=/dmt3/software/spearmint/spearmint
-SPEARMINT_THREADS=2
+SPEARMINT_THREADS=4
 
 ### SPEARMINT DEFAULT OPTIONS
 if [ -z "$GPMIN_MAX_CONCURRENT"  ]
@@ -71,7 +71,8 @@ echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
 ### SCHEDULE SPEARMINT JOB
 echo 'Starting spearmint on SGE...'
 cd $SPEARMINT_HOME
-/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR "
+#/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR "
+/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIOptChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR "
 
 
 

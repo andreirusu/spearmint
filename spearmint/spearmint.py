@@ -256,7 +256,7 @@ def main_controller(options, args):
     # Loop until we run out of jobs.
     while True:
         attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options)
-        time.sleep(1)
+        #time.sleep(1)
  
 def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
     import drmaa
@@ -432,8 +432,7 @@ def attempt_dispatch(expt_name, expt_dir, work_dir, chooser, options):
         complete   = expt_grid.get_complete()
         sys.stderr.write("%d candidates   %d pending   %d complete\n" % 
                          (candidates.shape[0], pending.shape[0], complete.shape[0]))
-        time.sleep(0.01)
-
+        #time.sleep(0.01)
     return
 
 def load_expt(filename):
