@@ -31,8 +31,6 @@ def job(job_id, params):
     # call job
     import shlex
     args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(os.getcwd(), 'job.sh'))
-    print(env)
-    print(args)
     try:
         p = sp.Popen(args, env=env)
         #p = sp.Popen(args, env=env, cwd=env['SGE_JOB_SPOOL_DIR'])
@@ -41,11 +39,8 @@ def job(job_id, params):
         print(sys.exc_info())
     
     # read back result
-    print(os.getcwd())
     f = open(outfilename)
-    #f = open(os.path.join(env['SGE_JOB_SPOOL_DIR'], outfilename))
     lines = f.readlines()
-    print(lines[0])
     # optimizer tries to minimize error
     result = float(lines[0])
     print(result)
@@ -58,10 +53,11 @@ def main(job_id, params):
     print params
     return job(job_id, params)
 
-
+'''
 if __name__ == '__main__':
     d={}
-    d['cost_out_filename'] = ['cost.txt']
+    d['epsW'] = ['0.001']
+    d['epochs_stage1'] = ['300']
     main(1234, d)
-
+'''
 
