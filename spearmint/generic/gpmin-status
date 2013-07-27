@@ -23,8 +23,8 @@ LINE='#'`printf %98s |tr " " "-"`'#'
 
 echo $LINE
 printf $ROW_PATTERN  '' '' 'DURATION' ' BEST' 'BEST' 'CANDIDATES '  
-printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' ' VALUE' 'JOB_ID' ': PENDING' 
-printf $ROW_PATTERN  '' '' '' '' '' ': COMPLETED' 
+printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' ' VALUE' 'JOB_ID' ': COMPLETED' 
+printf $ROW_PATTERN  '' '' '' '' '' ': PENDING' 
 echo $LINE
 
 for dir in ${*:1}
