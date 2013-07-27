@@ -37,14 +37,26 @@ do
             hh="00"
         fi
          
+        DIFF=$((`date +%s` - ${STATUS[0]}))
+        if [ "$DIFF" -le "60" ] 
+        then 
+            STAT='RUNNING'
+        elif [ "$DIFF" -ge "500" ]
+        then
+            STAT='NOT RUNNING'
+        else
+            STAT='IDLE'
+        fi
         echo
-        echo 'EXPERIMENT:   ' `basename $dir`
-        echo 'TIME (hh:mm): ' "$hh:$mm"
-        echo 'BEST VALUE:   ' ${STATUS[1]}
-        echo 'BEST JOB_ID:  ' ${STATUS[2]}
-        echo 'CANDIDATES:   ' ${STATUS[3]}
-        echo 'PENDING:      ' ${STATUS[4]}
-        echo 'COMPLETED:    ' ${STATUS[5]}
+        echo 'EXPERIMENT:       ' `basename $dir`
+        echo 'STATUS:           ' $STAT
+        echo 'DURATION (hh:mm): ' "$hh:$mm"
+        echo 'LAST UPDATE:      ' `date -d @${STATUS[0]}`
+        echo 'BEST VALUE:       ' ${STATUS[1]}
+        echo 'BEST JOB_ID:      ' ${STATUS[2]}
+        echo 'CANDIDATES:       ' ${STATUS[3]}
+        echo 'PENDING:          ' ${STATUS[4]}
+        echo 'COMPLETED:        ' ${STATUS[5]}
     fi
 done
 
