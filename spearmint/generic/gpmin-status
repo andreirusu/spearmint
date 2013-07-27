@@ -17,14 +17,14 @@ fi
 
 
 
-ROW_PATTERN="%-43s%-10s%-11s%-20s%-12s%-10s%-20s\n"
+ROW_PATTERN="%-42s%-10s%-11s%-11s%-8s%-20s\n"
 
-LINE='#'`printf %128s |tr " " "-"`'#'
+LINE='#'`printf %98s |tr " " "-"`'#'
 
 echo $LINE
-printf $ROW_PATTERN  '' '' 'DURATION' '' 'BEST' 'BEST' 'CANDIDATES '  
-printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' 'LAST UPDATE' 'VALUE' 'JOB_ID' ': PENDING' 
-printf $ROW_PATTERN  '' '' '' '' '' '' ': COMPLETED' 
+printf $ROW_PATTERN  '' '' 'DURATION' ' BEST' 'BEST' 'CANDIDATES '  
+printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' ' VALUE' 'JOB_ID' ': PENDING' 
+printf $ROW_PATTERN  '' '' '' '' '' ': COMPLETED' 
 echo $LINE
 
 for dir in ${*:1}
@@ -61,7 +61,7 @@ do
         fi
 
         #printf "%-10s\t%s\n"  
-        printf $ROW_PATTERN "`basename $dir`" $STAT "$hh:$mm" "`date -d @${STATUS[0]} +"%Y.%m.%d %H:%M"`"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"
+        printf $ROW_PATTERN "`basename $dir`" $STAT " $hh:$mm"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"
     fi
 done
 echo $LINE
