@@ -15,6 +15,17 @@ DIRs must be valid gpmin experiment directories.
     exit
 fi
 
+
+
+ROW_PATTERN="%-43s%-15s%-12s%-20s%-12s%-10s%-12s\n"
+
+LINE='#---------------------------------------------------------------------------------------------------------------------------#'
+
+echo $LINE
+printf $ROW_PATTERN  '' '' 'DURATION' '' 'BEST' 'BEST' 'COMPLETED '  
+printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' 'LAST UPDATE' 'VALUE' 'JOB_ID' ': PENDING' 
+echo $LINE
+
 for dir in ${*:1}
 do 
     if [ -d "$dir" -a -f "$dir/trace.csv" ] 
@@ -47,16 +58,10 @@ do
         else
             STAT='IDLE'
         fi
-        echo
-        echo 'EXPERIMENT:       ' `basename $dir`
-        echo 'STATUS:           ' $STAT
-        echo 'DURATION (hh:mm): ' "$hh:$mm"
-        echo 'LAST UPDATE:      ' `date -d @${STATUS[0]}`
-        echo 'BEST VALUE:       ' ${STATUS[1]}
-        echo 'BEST JOB_ID:      ' ${STATUS[2]}
-        echo 'CANDIDATES:       ' ${STATUS[3]}
-        echo 'PENDING:          ' ${STATUS[4]}
-        echo 'COMPLETED:        ' ${STATUS[5]}
+
+        #printf "%-10s\t%s\n"  
+        printf $ROW_PATTERN "`basename $dir`" $STAT "$hh:$mm" "`date -d @${STATUS[0]} +"%Y.%m.%d %H:%M"`"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[5]} : ${STATUS[4]}"
     fi
 done
+echo $LINE
 
