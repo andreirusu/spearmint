@@ -5,7 +5,7 @@ if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o
 then
     name=`basename $0`
     echo "Usage: 
-    $name CONFIG-FILE DIR1 [DIR2] [DIR3] ...
+    $name DIR1 [DIR2] [DIR3] ...
     
 The first argument is compulsory. 
 
