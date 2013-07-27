@@ -22,8 +22,20 @@ do
         FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))
         STATUS=($(tail -n 1 $dir/trace.csv | tr ',' '\n'))
         hh=$(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc -l )
-        mm=$(echo '0.'`echo "$hh" | cut -d '.' -f 2`" * 60" | bc | cut -d '.' -f 1 )
+        mm=$(echo '0.'`echo "$hh" | cut -d '.' -f 2`" * 60" | bc -l | cut -d '.' -f 1 )
+        if [ -z "$mm" ] 
+        then 
+            mm="00"
+        fi
+        if [ `expr length "$mm"` -lt 2 ] 
+        then 
+            mm="0"$mm
+        fi
         hh=$(echo "$hh" | cut -d '.' -f 1)
+        if [ -z "$hh" ] 
+        then 
+            hh="00"
+        fi
          
         echo
         echo 'EXPERIMENT:   ' `basename $dir`
