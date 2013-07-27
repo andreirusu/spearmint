@@ -1,13 +1,13 @@
 #!/bin/bash
 
 ### TODO: move to permanent location
-SPEARMINT_HOME=/dmt3/software/spearmint/spearmint
-SPEARMINT_THREADS=2
+SPEARMINT_HOME=/Users/andreirusu/funspace/spearmint/spearmint
+SPEARMINT_THREADS=4
 
 ### SPEARMINT DEFAULT OPTIONS
 if [ -z "$GPMIN_MAX_CONCURRENT"  ]
 then
-    GPMIN_MAX_CONCURRENT=100
+    GPMIN_MAX_CONCURRENT=4
 fi
 
 if [ -z "$GPMIN_MAX_JOBS"  ]
