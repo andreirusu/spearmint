@@ -39,6 +39,7 @@ fi
 
 EXP_DIR=$PWD/`basename $1` 
 cd $EXP_DIR
+rm *lock
 cp 'gpmin.log' 'gpmin.log.old'
 echo "Current experiment: "`basename $PWD`
 echo "Max concurrent jobs: "$GPMIN_MAX_CONCURRENT
