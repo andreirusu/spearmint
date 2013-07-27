@@ -11,17 +11,10 @@ def setEnvVar(env, varName, value):
     env[str(varName)] = str(value)
 
 
-def appendCommandLineOption(original, optionStr, params, ind):
-    return original + ' -' + optionStr + ' ' + str(params[optionStr][ind]) + ' '
-
-
-def appendAllCommandLineOptions(params, ind):
-    options = ''
-    # iterate over all parameters at a certain index
+def setAllEnvVar(env, params, ind):
     for option in params:
-        options = appendCommandLineOption(options, option, params, ind) 
-    return options
-
+        setEnvVar(env, option, params[option][ind]) 
+ 
 
 def job(job_id, params):
     # set the environment
@@ -31,12 +24,13 @@ def job(job_id, params):
     # set up job
     setEnvVar(env, 'OMP_NUM_THREADS', 1)
     # ADD JOB PARAMETERS
-    outfilename = os.path.join(os.getcwd(), 'output', 'cost.' + env['JOB_ID'] + '.txt')
-    commandStr = appendAllCommandLineOptions(params, 0) + ' --write-cost-to-file ' + outfilename
+    outfilename = os.path.join(os.getcwd(), 'output', 'cost.' + str(job_id)  + '.txt')
+    setEnvVar(env, 'cost_out_filename', outfilename)
+    setAllEnvVar(env, params, 0) 
    
     # call job
     import shlex
-    args = shlex.split('/bin/bash ' +  os.path.join(os.getcwd(), 'job.sh') + commandStr)
+    args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(os.getcwd(), 'job.sh'))
     print(env)
     print(args)
     try:
@@ -63,4 +57,11 @@ def main(job_id, params):
     print 'Anything printed here will end up in the output directory of job #:', str(job_id)
     print params
     return job(job_id, params)
+
+
+if __name__ == '__main__':
+    d={}
+    d['cost_out_filename'] = ['cost.txt']
+    main(1234, d)
+
 
