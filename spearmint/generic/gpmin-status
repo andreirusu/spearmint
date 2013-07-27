@@ -21,14 +21,18 @@ do
     then
         FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))
         STATUS=($(tail -n 1 $dir/trace.csv | tr ',' '\n'))
+        hh=$(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc -l )
+        mm=$(echo '0.'`echo "$hh" | cut -d '.' -f 2`" * 60" | bc | cut -d '.' -f 1 )
+        hh=$(echo "$hh" | cut -d '.' -f 1)
+         
         echo
-        echo 'EXPERIMENT:  ' `basename $dir`
-        echo 'TIME (h):    ' $(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc )
-        echo 'BEST VALUE:  ' ${STATUS[1]}
-        echo 'BEST JOB_ID: ' ${STATUS[2]}
-        echo 'CANDIDATES:  ' ${STATUS[3]}
-        echo 'PENDING:     ' ${STATUS[4]}
-        echo 'COMPLETED:   ' ${STATUS[5]}
+        echo 'EXPERIMENT:   ' `basename $dir`
+        echo 'TIME (hh:mm): ' "$hh:$mm"
+        echo 'BEST VALUE:   ' ${STATUS[1]}
+        echo 'BEST JOB_ID:  ' ${STATUS[2]}
+        echo 'CANDIDATES:   ' ${STATUS[3]}
+        echo 'PENDING:      ' ${STATUS[4]}
+        echo 'COMPLETED:    ' ${STATUS[5]}
     fi
 done
 
