@@ -1,0 +1,29 @@
+#!/bin/bash
+
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+if [ "$#" -ne "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/trace.csv" ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name CONFIG-FILE DIR
+    
+The first argument is compulsory. 
+
+DIR must be a valid gpmin experiment directory. 
+
+"
+    exit
+fi
+
+FIRST=($(head -n 1 $1/trace.csv | tr ',' '\n'))
+STATUS=($(tail -n 1 $1/trace.csv | tr ',' '\n'))
+
+
+echo 'EXPERIMENT:  ' `basename $1`
+echo 'TIME (h):    ' $(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc )
+echo 'BEST VALUE:  ' ${STATUS[1]}
+echo 'BEST JOB_ID: ' ${STATUS[2]}
+echo 'CANDIDATES:  ' ${STATUS[3]}
+echo 'PENDING:     ' ${STATUS[4]}
+echo 'COMPLETED:   ' ${STATUS[5]}
+

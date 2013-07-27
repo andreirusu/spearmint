@@ -1,0 +1,19 @@
+#!/bin/bash
+
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+if [ "$#" -ne "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/gpmin.log" ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name CONFIG-FILE DIR
+    
+The first argument is compulsory. 
+
+DIR must be a valid gpmin experiment directory. 
+
+"
+    exit
+fi
+
+tail -n 100 -f $1/gpmin.log
+
