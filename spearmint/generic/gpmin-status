@@ -17,13 +17,14 @@ fi
 
 
 
-ROW_PATTERN="%-43s%-15s%-12s%-20s%-12s%-10s%-12s\n"
+ROW_PATTERN="%-43s%-10s%-11s%-20s%-12s%-10s%-20s\n"
 
-LINE='#---------------------------------------------------------------------------------------------------------------------------#'
+LINE='#'`printf %128s |tr " " "-"`'#'
 
 echo $LINE
-printf $ROW_PATTERN  '' '' 'DURATION' '' 'BEST' 'BEST' 'COMPLETED '  
+printf $ROW_PATTERN  '' '' 'DURATION' '' 'BEST' 'BEST' 'CANDIDATES '  
 printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' 'LAST UPDATE' 'VALUE' 'JOB_ID' ': PENDING' 
+printf $ROW_PATTERN  '' '' '' '' '' '' ': COMPLETED' 
 echo $LINE
 
 for dir in ${*:1}
@@ -54,13 +55,13 @@ do
             STAT='RUNNING'
         elif [ "$DIFF" -ge "500" ]
         then
-            STAT='NOT RUNNING'
+            STAT='STOPPED'
         else
             STAT='IDLE'
         fi
 
         #printf "%-10s\t%s\n"  
-        printf $ROW_PATTERN "`basename $dir`" $STAT "$hh:$mm" "`date -d @${STATUS[0]} +"%Y.%m.%d %H:%M"`"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[5]} : ${STATUS[4]}"
+        printf $ROW_PATTERN "`basename $dir`" $STAT "$hh:$mm" "`date -d @${STATUS[0]} +"%Y.%m.%d %H:%M"`"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"
     fi
 done
 echo $LINE
