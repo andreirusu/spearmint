@@ -467,9 +467,8 @@ def sge_submit(name, output_file, modules, job_file, working_dir):
 #$ -e "%s"
 #$ -o "%s"
 #$ -wd "%s"
-#$ -q optim.q
+#$ -q gpu.q
 #$ -cwd
-#$ -pe omp.pe 1 
 
 # Set up the environment
 . /etc/profile
