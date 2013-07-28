@@ -8,6 +8,7 @@ then
     rm trace.csv
     rm output/*
     rm jobs/*
+    rm -Rf jobdirs
     rm expt-grid.pkl
     rm expt-grid.pkl.lock
     rm *GP*Chooser*.pkl
