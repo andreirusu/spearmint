@@ -40,10 +40,10 @@ function evaluate {
     RANDOM_SEED=$RANDOM
 
     ### First train until convergence on batches 1-4 and validate on 5th, for about 350 epochs 
-    time python $NET_DIR/convnet.py --seed=$RANDOM_SEED --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=5 --train-range=1-4 --layer-def=$PWD/layers.cfg --layer-params=$PWD/params.cfg --data-provider=cifar-cropped --test-freq=$((4 * 1))  --crop-border=4 --epochs=$((1)) --gpu=$GPU_ID
+    time python $NET_DIR/convnet.py --seed=$RANDOM_SEED --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=5 --train-range=1-4 --layer-def=$PWD/layers.cfg --layer-params=$PWD/params.cfg --data-provider=cifar-cropped --test-freq=$(( 4 * $epochs_stage1 ))  --crop-border=4 --epochs=$epochs_stage1 --gpu=$GPU_ID
 
     ### Then add 5th batch to training and test on the 6th; continue training for about 150 epochs
-    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet* --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=$((5 * 1)) --epochs=$((1 + 1)) --gpu=$GPU_ID
+    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet* --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=$(( 5 * $epochs_stage2 )) --epochs=$(( $epochs_stage1 + $epochs_stage2 )) --gpu=$GPU_ID
 
     ### Then lower learing rate 10 times (uncomment in layer params file); continue training for about 10 epochs
     #time python convnet.py -f ../tmp/tmp/11p3d/ConvNet__2013-07-21_14.02.12 --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=/Users/andreirusu/funspace/tmp/11p --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --layer-params=/Users/andreirusu/funspace/cuda-convnet/example-layers/layer-params-conv-local-11pct-3d.cfg --test-freq=10 --epochs 510 --gpu 0
