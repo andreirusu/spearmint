@@ -75,7 +75,7 @@ variable {
 
 variable {
  name: "size_rnorm"
- type: FLOAT
+ type: INT
  size: 1
  min:  3
  max:  12

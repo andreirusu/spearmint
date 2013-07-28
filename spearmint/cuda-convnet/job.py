@@ -25,24 +25,24 @@ def job(job_id, params):
     setEnvVar(env, 'OMP_NUM_THREADS', 1)
     setEnvVar(env, 'MKL_NUM_THREADS', 1)
     setEnvVar(env, 'EXP_DIR', os.getcwd())
+    setEnvVar(env, 'SPEARMINT_JOB_ID', job_id)
     # ADD JOB PARAMETERS
-    outdir = os.path.join(os.getcwd(), 'jobdirs', str(job_id))
-    os.makedirs(outdir)
-    os.chdir(outdir)
+    outdir = os.path.join(env['EXP_DIR'], 'jobdirs', str(job_id))
+    try:
+        os.makedirs(outdir)
+    except:
+        pass
     outfilename = os.path.join(outdir, 'cost.' + str(job_id)  + '.txt')
     setEnvVar(env, 'cost_out_filename', outfilename)
     setAllEnvVar(env, params, 0) 
-   
     # call job
     import shlex
     args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(env['EXP_DIR'], 'job.sh'))
     try:
-        p = sp.Popen(args, env=env)
-        #p = sp.Popen(args, env=env, cwd=env['SGE_JOB_SPOOL_DIR'])
+        p = sp.Popen(args, env=env, cwd=outdir)
         p.wait()
     except:
         print(sys.exc_info())
-    
     # read back result
     f = open(outfilename)
     lines = f.readlines()
