@@ -236,6 +236,7 @@ class GPEIOptChooser:
             #cand = np.vstack((cand, cand2))
 
             # Optimize each point in parallel
+            print(self.grid_subset)
             pool = multiprocessing.Pool(self.grid_subset)
             results = [pool.apply_async(optimize_pt,args=(
                         c,b,comp,pend,vals,copy.copy(self))) for c in cand2]

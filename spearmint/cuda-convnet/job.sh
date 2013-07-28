@@ -25,6 +25,10 @@ echo $cost_out_filename
 
 
 
+sh $EXP_DIR/layer-params-conv-local-11pct.cfg.sh  
+sh $EXP_DIR/layers-conv-local-11pct.cfg.sh
+
+
 ### First train until convergence on batches 1-4 and validate on 5th, for about 350 epochs 
 #time python convnet.py  --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=5 --train-range=1-4 --layer-def=/Users/andreirusu/funspace/cuda-convnet/example-layers/layers-conv-local-11pct-3d.cfg --layer-params=/Users/andreirusu/funspace/cuda-convnet/example-layers/layer-params-conv-local-11pct-3d.cfg --data-provider=cifar-cropped --test-freq=20 --crop-border=4 --epochs 500 --gpu 0
 
@@ -40,6 +44,6 @@ echo $cost_out_filename
 ### TEST => 0.1111 error; accuracy > 88% 
 #time python convnet.py -f ../tmp/tmp/tmp/tmp/11p3d/ConvNet__2013-07-21_14.02.12 --logreg-name=logprob --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --test-only=1 --multiview-test=1 --test-range=6 --data-provider=cifar-cropped --gpu 0
 
-
+#### WRITE RESULTS
 echo $RANDOM  > $cost_out_filename
 

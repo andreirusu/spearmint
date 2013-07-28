@@ -39,6 +39,7 @@ fi
 
 EXP_DIR=$PWD/`basename $1` 
 cd $EXP_DIR
+rm *lock
 cp 'gpmin.log' 'gpmin.log.old'
 echo "Current experiment: "`basename $PWD`
 echo "Max concurrent jobs: "$GPMIN_MAX_CONCURRENT
@@ -47,7 +48,5 @@ echo "Max total jobs: "$GPMIN_MAX_JOBS
 ### SCHEDULE SPEARMINT JOB
 echo 'Starting spearmint on SGE...'
 cd $SPEARMINT_HOME
-/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS $EXP_DIR "
-
-
+/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIOptChooser --method-args=grid_subset=$SPEARMINT_THREADS --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS $EXP_DIR "
 

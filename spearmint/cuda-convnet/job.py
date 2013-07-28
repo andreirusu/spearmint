@@ -23,14 +23,19 @@ def job(job_id, params):
     setEnvVar(env, 'SGE_ROOT', '/var/lib/gridengine')
     # set up job
     setEnvVar(env, 'OMP_NUM_THREADS', 1)
+    setEnvVar(env, 'MKL_NUM_THREADS', 1)
+    setEnvVar(env, 'EXP_DIR', os.getcwd())
     # ADD JOB PARAMETERS
-    outfilename = os.path.join(os.getcwd(), 'output', 'cost.' + str(job_id)  + '.txt')
+    outdir = os.path.join(os.getcwd(), 'jobdirs', str(job_id))
+    os.makedirs(outdir)
+    os.chdir(outdir)
+    outfilename = os.path.join(outdir, 'cost.' + str(job_id)  + '.txt')
     setEnvVar(env, 'cost_out_filename', outfilename)
     setAllEnvVar(env, params, 0) 
    
     # call job
     import shlex
-    args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(os.getcwd(), 'job.sh'))
+    args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(env['EXP_DIR'], 'job.sh'))
     try:
         p = sp.Popen(args, env=env)
         #p = sp.Popen(args, env=env, cwd=env['SGE_JOB_SPOOL_DIR'])
@@ -52,12 +57,4 @@ def main(job_id, params):
     print 'Anything printed here will end up in the output directory of job #:', str(job_id)
     print params
     return job(job_id, params)
-
-'''
-if __name__ == '__main__':
-    d={}
-    d['epsW'] = ['0.001']
-    d['epochs_stage1'] = ['300']
-    main(1234, d)
-'''
 

@@ -468,7 +468,6 @@ def sge_submit(name, output_file, modules, job_file, working_dir):
 #$ -o "%s"
 #$ -wd "%s"
 #$ -q gpu.q
-#$ -cwd
 
 # Set up the environment
 . /etc/profile
