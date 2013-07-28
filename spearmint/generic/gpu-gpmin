@@ -7,11 +7,7 @@ SPEARMINT_THREADS=4
 ### SPEARMINT DEFAULT OPTIONS
 if [ -z "$GPMIN_MAX_CONCURRENT"  ]
 then
-<<<<<<< HEAD:spearmint/generic/gpu-gpmin
     GPMIN_MAX_CONCURRENT=4
-=======
-    GPMIN_MAX_CONCURRENT=10
->>>>>>> c33021f71e3ddc1c1459936413d7be33eb35be71:spearmint/generic/gpmin
 fi
 
 if [ -z "$GPMIN_MAX_JOBS"  ]
