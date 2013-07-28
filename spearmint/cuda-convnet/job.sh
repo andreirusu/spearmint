@@ -34,9 +34,10 @@ echo $cost_out_filename
 sh $EXP_DIR/layer-params-conv-local-11pct.cfg.sh  
 sh $EXP_DIR/layers-conv-local-11pct.cfg.sh
 
+RANDOM_SEED=$RANDOM
 
 ### First train until convergence on batches 1-4 and validate on 5th, for about 350 epochs 
-time python $NET_DIR/convnet.py  --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=5 --train-range=1-4 --layer-def=$PWD/layers.cfg --layer-params=$PWD/params.cfg --data-provider=cifar-cropped --test-freq=$((4 * 1))  --crop-border=4 --epochs=$((1)) --gpu=$GPU_ID
+time python $NET_DIR/convnet.py --seed=$RANDOM_SEED --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=5 --train-range=1-4 --layer-def=$PWD/layers.cfg --layer-params=$PWD/params.cfg --data-provider=cifar-cropped --test-freq=$((4 * 1))  --crop-border=4 --epochs=$((1)) --gpu=$GPU_ID
 
 ### Then add 5th batch to training and test on the 6th; continue training for about 150 epochs
 time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet* --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=$((5 * 1)) --epochs=$((1 + 1)) --gpu=$GPU_ID
