@@ -34,7 +34,7 @@ function evaluate {
 
     rm -Rf $PWD/$1
 
-    SAVE_PATH=$PWD/$1/nets
+    SAVE_PATH=$PWD/$1/
 
 
     mkdir -p $SAVE_PATH
@@ -61,7 +61,7 @@ function evaluate {
 
 
 function cost {
-    cat $PWD/$1/nets/test.txt  | grep logprob - | tail -n1 | cut -d ' ' -f 4 
+    cat $PWD/$1/test.txt  | grep logprob - | tail -n1 | cut -d ' ' -f 4 
 }
 
 
