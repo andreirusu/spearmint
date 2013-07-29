@@ -49,10 +49,10 @@ function evaluate {
     time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet*   --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH  --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=$(( 5 * $epochs_stage2 )) --epochs=$(( $epochs_stage1 + $epochs_stage2 )) --gpu=$GPU_ID
 
     ### Then lower learing rate 10 times (uncomment in layer params file); continue training for about 10 epochs
-    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet*   --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH  --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=5 --layer-params=$PWD/params_lower_epsW_10.cfg --epochs=$(( $epochs_stage1 + $epochs_stage2 + 50 )) --gpu=$GPU_ID
+    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet*   --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH  --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=50 --layer-params=$PWD/params_lower_epsW_10.cfg --epochs=$(( $epochs_stage1 + $epochs_stage2 + 50 )) --gpu=$GPU_ID
 
     ### Then lower learing rate 10 times once again (uncomment in layer params file); continue training for about 10 epochs
-    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet*   --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH  --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=5 --layer-params=$PWD/params_lower_epsW_100.cfg  --epochs=$(( $epochs_stage1 + $epochs_stage2 + 100)) --gpu=$GPU_ID
+    time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet*   --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --save-path=$SAVE_PATH  --test-range=6 --train-range=1-5 --data-provider=cifar-cropped --test-freq=50 --layer-params=$PWD/params_lower_epsW_100.cfg  --epochs=$(( $epochs_stage1 + $epochs_stage2 + 100)) --gpu=$GPU_ID
 
     ### TEST => 0.1111 error; accuracy > 88% 
     time python $NET_DIR/convnet.py -f $SAVE_PATH/ConvNet* --logreg-name=logprob --data-path=/Users/andreirusu/funspace/cifar-10-py-colmajor --test-only=1 --multiview-test=1 --test-range=6 --data-provider=cifar-cropped --gpu $GPU_ID > $SAVE_PATH/test.txt
