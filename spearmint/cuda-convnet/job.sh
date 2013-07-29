@@ -32,7 +32,10 @@ sh $EXP_DIR/layers-conv-local-11pct.cfg.sh
 
 function evaluate {
 
+    rm -Rf $PWD/$1
+
     SAVE_PATH=$PWD/$1/nets
+
 
     mkdir -p $SAVE_PATH
     echo $SAVE_PATH
