@@ -8,17 +8,7 @@ export LD_LIBRARY_PATH=/Users/andreirusu/funspace/cuda/lib64:$LD_LIBRARY_PATH
 export NET_DIR=/Users/andreirusu/funspace/cuda-convnet
 
 # PRINT HYPER-PARAMETERS
-echo $epochs_stage1
-echo $epochs_stage2
-echo $epsW
-echo $wc_conv1
-echo $wc_conv2
-echo $wc_local3
-echo $wc_local4
-echo $wc_fc10
-echo $scale_rnorm
-echo $size_rnorm
-echo $pow_rnorm
+printf  "epochs_stage1: %f\nepochs_stage2: %f\nepsW: %f\nwc_conv1: %f\nwc_conv2: %f\nwc_local3: %f\nwc_local4: %f\nwc_fc10: %f\nscale_rnorm: %f\nsize_rnorm: %f\npow_rnorm: %f\n" $epochs_stage1 $epochs_stage2 $epsW $wc_conv1 $wc_conv2 $wc_local3 $wc_local4 $wc_fc10 $scale_rnorm $size_rnorm $pow_rnorm
 
 # WRITE CONFIGURATION VALUES
 echo $GPU_ID
