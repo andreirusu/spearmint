@@ -1,6 +1,6 @@
 #!/bin/bash
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
 if [ "$#" -ne "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/gpmin.log" ] 
 then
     name=`basename $0`

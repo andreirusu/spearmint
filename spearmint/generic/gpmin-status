@@ -1,21 +1,8 @@
 #!/bin/bash
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
-if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/trace.csv" ] 
-then
-    name=`basename $0`
-    echo "Usage: 
-    $name DIR1 [DIR2] [DIR3] ...
-    
-The first argument is compulsory. 
-
-DIRs must be valid gpmin experiment directories. 
-
-"
-    exit
-fi
-
-
+### GENERIC SETUP
+#bash /dmt3/software/spearmint/spearmint/gpmin-setup.bash
+. gpmin-setup.bash 
 
 ROW_PATTERN="%-42s%-10s%-11s%-11s%-8s%-20s\n"
 
@@ -29,7 +16,7 @@ echo $LINE
 
 for dir in ${*:1}
 do 
-    if [ -d "$dir" -a -f "$dir/trace.csv" ] 
+    if [ -d "$dir" -a -f "$dir/trace.csv" -a -f "$dir/SGE_JOB_ID"  ] 
     then
         FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))
         STATUS=($(tail -n 1 $dir/trace.csv | tr ',' '\n'))
@@ -48,17 +35,10 @@ do
         then 
             hh="00"
         fi
-         
-        DIFF=$((`date +%s` - ${STATUS[0]}))
-        if [ "$DIFF" -le "60" ] 
-        then 
-            STAT='RUNNING'
-        elif [ "$DIFF" -ge "500" ]
-        then
-            STAT='STOPPED'
-        else
-            STAT='IDLE'
-        fi
+        
+        JOB_ID=`cat $dir/SGE_JOB_ID` 
+       
+        STAT=`print_job_status $JOB_ID`
 
         #printf "%-10s\t%s\n"  
         printf $ROW_PATTERN "`basename $dir`" $STAT " $hh:$mm"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"

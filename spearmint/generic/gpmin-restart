@@ -1,24 +1,7 @@
-#!/bin/bash
+#!/bin/bash -e
 
-### TODO: move to permanent location
-SPEARMINT_HOME=/dmt3/software/spearmint/spearmint
-SPEARMINT_THREADS=2
-
-### SPEARMINT DEFAULT OPTIONS
-if [ -z "$GPMIN_MAX_CONCURRENT"  ]
-then
-    GPMIN_MAX_CONCURRENT=10
-fi
-
-if [ -z "$GPMIN_MAX_JOBS"  ]
-then
-    GPMIN_MAX_JOBS=5000
-fi
-
-if [ -z "$GPMIN_GRID_SEED"  ]
-then
-    GPMIN_GRID_SEED=$RANDOM
-fi
+### GENERIC SETUP
+. gpmin-setup.bash
 
 
 ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
@@ -36,19 +19,21 @@ DIR must be a valid gpmin experiment directory.
     exit
 fi
 
-
-EXP_DIR=$PWD/`basename $1` 
+## prepare directory for restart
+export EXP_DIR=$PWD/`basename $1` 
 cd $EXP_DIR
 rm *lock
 cp 'gpmin.log' 'gpmin.log.old'
-echo "Current experiment: "`basename $PWD`
-echo "Max concurrent jobs: "$GPMIN_MAX_CONCURRENT
-echo "Max total jobs: "$GPMIN_MAX_JOBS
 
-### SCHEDULE SPEARMINT JOB
-echo 'Starting spearmint on SGE...'
-cd $SPEARMINT_HOME
-/dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS $EXP_DIR "
 
+gpmin-status $@
+
+gpmin_stop $@
+
+gpmin-status $@
+
+gpmin_start $@
+
+gpmin-status $@
 
 

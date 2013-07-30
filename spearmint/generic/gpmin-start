@@ -1,0 +1,23 @@
+#!/bin/bash
+
+### GENERIC SETUP
+. gpmin-setup.bash
+
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name DIR1 [DIR2] [DIR3] ...
+    
+The first argument is compulsory. 
+
+DIRs must be valid gpmin experiment directories. 
+
+"
+    exit
+fi
+
+
+gpmin_start $1
+
