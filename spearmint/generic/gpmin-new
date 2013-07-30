@@ -1,0 +1,34 @@
+#!/bin/bash -e
+
+
+### GENERIC SETUP
+#bash /dmt3/software/spearmint/spearmint/gpmin-setup.bash
+. gpmin-setup.bash 
+
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
+if [ "$#" -lt "2" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -e "$1" -o -z "$2"   ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name CONFIG-FILE COMMAND 
+    
+The first two arguments are compulsory.   
+
+CONFIG-FILE must be a valid spearmint configuration file, with a few restrictions:
+    All the variable names must be supported as command line arguments by the target executable (case sensitive).
+    Only single dimensional variables are supported; please set \"size\" to 1 for all variables in the CONFIG-FILE. 
+
+COMMAND can be any bash command-line call which is valid after: 
+    (1) all the options in the CONFIG-FILE are appended with their respective values, and
+    (2) the \"--write-cost-to-file OUTFILE\" options is appended.
+
+Hence, the only restrictions are that COMMAND must write the minimization objective (cost) to OUTFILE and all the CONFIG-FILE variable must be valid command-line arguments when postfixed to COMMAND. Please only use absolute file paths in COMMAND.
+
+"
+    exit
+fi
+
+EXP_DIR=`gpmin_new $@`
+
+print_gpmin_info $EXP_DIR
+
