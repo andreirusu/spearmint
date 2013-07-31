@@ -1,39 +1,28 @@
-#!/bin/bash -e
+#!/bin/bash 
 
 ### GENERIC SETUP
 . gpmin-setup.bash
 
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
-if [ "$#" -ne "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/config.pb" ] 
+### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
+if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
 then
     name=`basename $0`
     echo "Usage: 
-    $name DIR
+    $name DIR1 [DIR2] [DIR3] ...
     
 The first argument is compulsory. 
 
-DIR must be a valid gpmin experiment directory. 
+DIRs must be valid gpmin experiment directories. 
 
 "
     exit
 fi
 
-## prepare directory for restart
-export EXP_DIR=$PWD/`basename $1` 
-cd $EXP_DIR
-rm *lock
-cp 'gpmin.log' 'gpmin.log.old'
-
-
-gpmin-status $@
 
 gpmin_stop $@
 
-gpmin-status $@
+sleep 1
 
 gpmin_start $@
-
-gpmin-status $@
-
 

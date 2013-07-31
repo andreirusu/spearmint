@@ -16,33 +16,35 @@ echo $LINE
 
 for dir in ${*:1}
 do 
-    if [ -d "$dir" -a -f "$dir/trace.csv" -a -f "$dir/SGE_JOB_ID"  ] 
+    if [ ! -d "$dir" -o ! -f "$dir/trace.csv" -o ! -f "$dir/SGE_JOB_ID"  ] 
     then
-        FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))
-        STATUS=($(tail -n 1 $dir/trace.csv | tr ',' '\n'))
-        hh=$(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc -l )
-        mm=$(echo '0.'`echo "$hh" | cut -d '.' -f 2`" * 60" | bc -l | cut -d '.' -f 1 )
-        if [ -z "$mm" ] 
-        then 
-            mm="00"
-        fi
-        if [ `expr length "$mm"` -lt 2 ] 
-        then 
-            mm="0"$mm
-        fi
-        hh=$(echo "$hh" | cut -d '.' -f 1)
-        if [ -z "$hh" ] 
-        then 
-            hh="00"
-        fi
-        
-        JOB_ID=`cat $dir/SGE_JOB_ID` 
-       
-        STAT=`print_job_status $JOB_ID`
-
-        #printf "%-10s\t%s\n"  
-        printf $ROW_PATTERN "`basename $dir`" $STAT " $hh:$mm"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"
+        printf "%-42s%s\n" $dir "Not started or not a valid directory."
+        continue
     fi
+    FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))
+    STATUS=($(tail -n 1 $dir/trace.csv | tr ',' '\n'))
+    hh=$(echo  "(${STATUS[0]} - ${FIRST[0]}) / 3600" | bc -l )
+    mm=$(echo '0.'`echo "$hh" | cut -d '.' -f 2`" * 60" | bc -l | cut -d '.' -f 1 )
+    if [ -z "$mm" ] 
+    then 
+        mm="00"
+    fi
+    if [ `expr length "$mm"` -lt 2 ] 
+    then 
+        mm="0"$mm
+    fi
+    hh=$(echo "$hh" | cut -d '.' -f 1)
+    if [ -z "$hh" ] 
+    then 
+        hh="00"
+    fi
+    
+    JOB_ID=`cat $dir/SGE_JOB_ID` 
+   
+    STAT=`print_job_status $JOB_ID`
+
+    #printf "%-10s\t%s\n"  
+    printf $ROW_PATTERN "`basename $dir`" $STAT " $hh:$mm"  ${STATUS[1]}  ${STATUS[2]}  "${STATUS[3]} : ${STATUS[5]} : ${STATUS[4]}"
 done
 echo $LINE
 
