@@ -1,8 +1,7 @@
 #!/bin/bash
 
 ### GENERIC SETUP
-#bash /dmt3/software/spearmint/spearmint/gpmin-setup.bash
-. gpmin-setup.bash 
+. /dmt3/software/spearmint/spearmint/gpmin-setup.bash
 
 ROW_PATTERN="%-42s%-10s%-11s%-11s%-8s%-20s\n"
 
