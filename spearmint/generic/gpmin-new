@@ -1,7 +1,7 @@
 #!/bin/bash -e
 
 ### GENERIC SETUP
-. /dmt3/software/spearmint/spearmint/gpmin-setup.bash
+. /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
 ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
 if [ "$#" -lt "2" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -e "$1" -o -z "$2"   ] 
