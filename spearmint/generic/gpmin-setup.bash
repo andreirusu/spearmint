@@ -38,7 +38,10 @@ function print_gpmin_info
 function print_job_status
 {
     JOB_ID=$1
-    if [ -n "`qstat -s r  | grep $JOB_ID - `" ]
+    if [ -z "$JOB_ID" ]
+    then
+        echo 'STOPPED'
+    elif [ -n "`qstat -s r  | grep $JOB_ID - `" ]
     then
         echo 'RUNNING'
     elif [ -n "`qstat -s p  | grep $JOB_ID - `" ]
