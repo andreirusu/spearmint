@@ -1,14 +1,13 @@
 #!/bin/bash
-layers="[data]
+
+echo "[data]
 type=data
 dataIdx=0
-
-
+ 
 [labels]
 type=data
 dataIdx=1
-
-
+ 
 [conv1]
 type=conv
 inputs=data
@@ -21,8 +20,7 @@ neuron=relu
 initW=0.0001
 partialSum=4
 sharedBiases=1
-
-
+ 
 [pool1]
 type=pool
 pool=max
@@ -32,15 +30,13 @@ sizeX=3
 stride=2
 outputsX=0
 channels=64
-
-
+ 
 [rnorm1]
 type=cmrnorm
 inputs=pool1
 channels=64
 size=$size_rnorm
-
-
+ 
 [conv2]
 type=conv
 inputs=rnorm1
@@ -53,15 +49,13 @@ neuron=relu
 initW=0.01
 partialSum=8
 sharedBiases=1
-
-
+ 
 [rnorm2]
 type=cmrnorm
 inputs=conv2
 channels=64
 size=$size_rnorm
-
-
+ 
 [pool2]
 type=pool
 pool=max
@@ -71,8 +65,7 @@ sizeX=3
 stride=2
 outputsX=0
 channels=64
-
-
+ 
 [local3]
 type=local
 inputs=pool2
@@ -83,8 +76,7 @@ filterSize=3
 channels=64
 neuron=relu
 initW=0.04
-
-
+ 
 [local4]
 type=local
 inputs=local3
@@ -95,26 +87,20 @@ filterSize=3
 channels=64
 neuron=relu
 initW=0.04
-
-
+ 
 [fc10]
 type=fc
 outputs=10
 inputs=local4
 initW=0.01
-
-
+ 
 [probs]
 type=softmax
 inputs=fc10
-
-
+ 
 [logprob]
 type=cost.logreg
 inputs=labels,probs
-
-
-"
-
-echo $layers | tr " " "\n" > "layers.cfg"
+ 
+"  > "layers.cfg"
 

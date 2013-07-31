@@ -1,7 +1,14 @@
 #!/bin/bash -e 
 
-echo $PWD
 
+function real_dir_path 
+{
+    echo "$(dirname $(readlink -e $1))/$(basename $1)" 
+}
+
+EXP_DIR=`real_dir_path $EXP_DIR`
+
+echo $EXP_DIR
 
 export PATH=/Users/andreirusu/funspace/cuda/bin:$PATH 
 export LD_LIBRARY_PATH=/Users/andreirusu/funspace/cuda/lib64:$LD_LIBRARY_PATH 
@@ -24,7 +31,7 @@ function evaluate {
 
     rm -Rf $PWD/$1
 
-    SAVE_PATH=$PWD/$1/
+    SAVE_PATH=$PWD/$1
 
 
     mkdir -p $SAVE_PATH
