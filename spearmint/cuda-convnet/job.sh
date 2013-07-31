@@ -75,5 +75,5 @@ avg=`echo "$avg / $count" | bc -l`
 
 
 #### WRITE RESULT
-printf "%.7f" $avg > $cost_out_filename
+printf "%.7f\n" $avg > $cost_out_filename
 
