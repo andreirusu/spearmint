@@ -1,28 +1,21 @@
-#!/bin/bash -e
+#!/bin/bash 
 
 ### TODO: move to permanent location
-export SPEARMINT_HOME=/dmt3/software/spearmint/spearmint
-export SPEARMINT_THREADS=2
+export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
+export SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
 
 ### SPEARMINT DEFAULT OPTIONS
-if [ -z "$GPMIN_MAX_CONCURRENT"  ]
-then
-    export GPMIN_MAX_CONCURRENT=10
-fi
+export GPMIN_MAX_CONCURRENT=${GPMIN_MAX_CONCURRENT:-10}
+export GPMIN_MAX_JOBS=${GPMIN_MAX_JOBS:-5000}
 
-if [ -z "$GPMIN_MAX_JOBS"  ]
-then
-    export GPMIN_MAX_JOBS=5000
-fi
+export GPMIN_GRID_SEED=$RANDOM
 
-if [ -z "$GPMIN_GRID_SEED"  ]
-then
-    export GPMIN_GRID_SEED=$RANDOM
-fi
 
 function real_dir_path 
 {
-    echo "$(dirname $(readlink -e $1))/$(basename $1)"
+    a=`dirname $(readlink -e "$1")`
+    b=`basename "$1"`
+    echo "$a"/"$b"
 }
 
 function print_gpmin_info
