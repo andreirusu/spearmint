@@ -3,6 +3,7 @@
 ### TODO: move to permanent location
 export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
 export SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
+export SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"optim.q"}
 
 ### SPEARMINT DEFAULT OPTIONS
 export GPMIN_MAX_CONCURRENT=${GPMIN_MAX_CONCURRENT:-10}
@@ -99,7 +100,7 @@ function gpmin_start
         # get temporary file
         tfile="`mktemp`"
 
-        /dmt3/software/bin/crunch -q torch.q -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR " > $tfile  
+        /dmt3/software/bin/crunch -q $SPEARMINT_QUEUE -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR " > $tfile  
 
         cat $tfile | tr -cd [0-9.] |  sed -r 's/^([^.]+).*$/\1/; s/^[^0-9]*([0-9]+).*$/\1/' > $EXP_DIR/SGE_JOB_ID
 
