@@ -1,11 +1,16 @@
-#!/bin/bash
+#!/bin/bash 
 
 function dec {
-    printf "%.10f" $1
+    printf "%.10f\n" $1
 }
 
 function div {
-    e=`printf "%.10f / %.10f" $1 $2`
+    if [ -z "$1" -o -z "$2" ] 
+    then
+        echo "ERROR in div $1 $2 " 1>&2
+        exit
+    fi
+    e=`printf "%.16f / %.16f" $1 $2`
     res=`echo $e | bc -l`
     dec $res
 }
@@ -60,7 +65,7 @@ pow=`dec $pow_rnorm`
      "
 }
 
-layer_conf 1 | tr " " "\n" > "params.cfg"
-layer_conf 10 | tr " " "\n" > "params_lower_epsW_10.cfg"
-layer_conf 100 | tr " " "\n" > "params_lower_epsW_100.cfg"
+echo "`layer_conf 1`"       > "params.cfg"
+echo "`layer_conf 10`"      > "params_lower_epsW_10.cfg"
+echo "`layer_conf 100`"     > "params_lower_epsW_100.cfg"
 

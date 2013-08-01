@@ -9,6 +9,7 @@ import subprocess as sp
 
 def setEnvVar(env, varName, value):
     env[str(varName)] = str(value)
+    print(str(varName) + ' : ' + env[str(varName)])
 
 
 def setAllEnvVar(env, params, ind):
@@ -38,21 +39,23 @@ def job(job_id, params):
     # call job
     import shlex
     args = shlex.split('/bin/bash /dmt3/software/bin/withgpu ' +  os.path.join(env['EXP_DIR'], 'job.sh'))
+    print('COMMAND:' + str(args))
+    print('COMMAND CWD:' + str(outdir))
     try:
-        p = sp.Popen(args, env=env, cwd=outdir)
+        p = sp.Popen(args, env=env, cwd=outdir, stderr=sp.STDOUT)
         p.wait()
+        print('Job exited. Trying to read back result!')
+        f = open(outfilename)
+        lines = f.readlines()
+        # optimizer tries to minimize error
+        result = float(lines[0])
+        print(result)
+        print('SUCCESS!')
+        return result
     except:
         print(sys.exc_info())
-    # read back result
-    f = open(outfilename)
-    lines = f.readlines()
-    # optimizer tries to minimize error
-    result = float(lines[0])
-    print(result)
-    print('Success!')
-    return result
-        
-
+        print('ERROR')
+    
 def main(job_id, params):
     print 'Anything printed here will end up in the output directory of job #:', str(job_id)
     print params
