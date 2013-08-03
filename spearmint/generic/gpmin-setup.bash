@@ -113,27 +113,30 @@ function gpmin_stop
 {
     for EXP_DIR in ${*:1}
     do 
+        echo $EXP_DIR
         EXP_DIR=`real_dir_path $EXP_DIR`
         if [ ! -d "$EXP_DIR" -o ! -f  "$EXP_DIR/SGE_JOB_ID" ]
         then
             echo "Skipping: \"$EXP_DIR\". Not a valid gpmin experiment!"
             continue
         fi
-        if [ -d "$EXP_DIR" -a -f "$EXP_DIR/SGE_JOB_ID" -a -n "`cat $EXP_DIR/SGE_JOB_ID`" ]
+        if [  -z "`cat $EXP_DIR/SGE_JOB_ID`" ]
         then
-            echo "EXPERIMENT: `basename $EXP_DIR`"
-            JOB_ID="`cat $EXP_DIR/SGE_JOB_ID`"
-            # delete job
-            qdel $JOB_ID 2>&1 &> /dev/null
-            echo "Waiting for job ($JOB_ID) to be deleted..."
-            # waiting for job to run
-            while [ -n "`qstat  | grep $JOB_ID -`" ] ; 
-            do 
-                  sleep 0.01
-            done
-            echo "" > $EXP_DIR/SGE_JOB_ID
-        fi 
+            echo "Skipping: \"$EXP_DIR\". Already stopped!"
+            continue
+        fi
+        echo "EXPERIMENT: `basename $EXP_DIR`"
+        JOB_ID="`cat $EXP_DIR/SGE_JOB_ID`"
+        # delete job
+        qdel $JOB_ID 2>&1 &> /dev/null
+        echo "Waiting for job ($JOB_ID) to be deleted..."
+        # waiting for job to run
+        while [ -n "`qstat  | grep $JOB_ID -`" ] ; 
+        do 
+              sleep 0.01
+        done
+        echo "" > $EXP_DIR/SGE_JOB_ID
+        echo 'STOPPED'
     done
-    echo 'STOPPED'
 }
 
