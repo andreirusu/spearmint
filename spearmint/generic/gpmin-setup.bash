@@ -1,4 +1,4 @@
-#!/bin/bash -e 
+#!/bin/bash  
 
 ### TODO: move to permanent location
 export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
@@ -72,7 +72,6 @@ function gpmin_start
 {
     for EXP_DIR in ${*:1}   
     do
-        echo "$EXP_DIR"
         if [ ! -d "$EXP_DIR" ] 
         then
             echo "Skipping: \"$EXP_DIR\". Not a valid gpmin directory!"
@@ -84,6 +83,7 @@ function gpmin_start
             echo "Skipping: \"$EXP_DIR\". Job not stopped. Please use the restart option!"
             continue
         fi
+        echo "EXPERIMENT: `basename $EXP_DIR`"
             
         ## prepare directory for restart
         rm -Rf $EXP_DIR/*lock
@@ -112,7 +112,6 @@ function gpmin_stop
 {
     for EXP_DIR in ${@:1}
     do 
-        echo $EXP_DIR
         if [ ! -d "$EXP_DIR" -o ! -f  "$EXP_DIR/SGE_JOB_ID" ]
         then
             echo "Skipping: \"`basename $EXP_DIR`\". Not a valid gpmin experiment!"
