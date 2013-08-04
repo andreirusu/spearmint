@@ -3,23 +3,27 @@
 ### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
-args=`realpath  ${@:1}`
+if  [ -z "${@:1}" ]
+then 
+    args=`realpath '.'`
+else
+    ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
+    if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
+    then
+        name=`basename $0`
+        echo "Usage: 
+        $name [DIR1] [DIR2] [DIR3] ...
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
-if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
-then
-    name=`basename $0`
-    echo "Usage: 
-    $name DIR1 [DIR2] [DIR3] ...
-    
-The first argument is compulsory. 
+    DIRs must be valid gpmin experiment directories.
+    If no directory is given, then the current directory is considered.  
 
-DIRs must be valid gpmin experiment directories. 
+    "
+        exit
+    fi
 
-"
-    exit
-fi
+    args=`realpath  ${@:1}`
 
+fi 
 
 ROW_PATTERN="%-42s%-10s%-11s%-11s%-8s%-20s\n"
 
@@ -35,7 +39,7 @@ for dir in $args
 do 
     if [ ! -d "$dir" -o ! -f "$dir/trace.csv" -o ! -f "$dir/SGE_JOB_ID"  ] 
     then
-        printf "%-42s%s\n" $dir "Not started or not a valid directory."
+        printf "%-42s%s\n" `basename $dir` "Not started or not a valid directory."
         continue
     fi
     FIRST=($(head -n 1 $dir/trace.csv | tr ',' '\n'))

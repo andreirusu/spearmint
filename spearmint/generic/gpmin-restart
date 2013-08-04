@@ -3,22 +3,29 @@
 ### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
-if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
-then
-    name=`basename $0`
-    echo "Usage: 
-    $name DIR1 [DIR2] [DIR3] ...
-    
-The first argument is compulsory. 
+if  [ -z "${@:1}" ]
+then 
+    args=`realpath '.'`
+else
+    ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
+    if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
+    then
+        name=`basename $0`
+        echo "Usage: 
+        $name [DIR1] [DIR2] [DIR3] ...
 
-DIRs must be valid gpmin experiment directories. 
+    DIRs must be valid gpmin experiment directories.
+    If no directory is given, then the current directory is considered.  
 
-"
-    exit
-fi
+    "
+        exit
+    fi
 
-gpmin_stop `realpath $@`
+    args=`realpath  ${@:1}`
 
-gpmin_start `realpath $@`
+fi 
+
+gpmin_stop $args
+
+gpmin_start $args
 
