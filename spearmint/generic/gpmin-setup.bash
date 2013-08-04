@@ -74,13 +74,13 @@ function gpmin_start
     do
         if [ ! -d "$EXP_DIR" ] 
         then
-            echo "Skipping: \"$EXP_DIR\". Not a valid gpmin directory!"
+            echo "Skipping: \"`basename $EXP_DIR`\". Not a valid gpmin directory!"
             continue
         fi
 
         if [ -f "$EXP_DIR/SGE_JOB_ID" -a -e "$EXP_DIR/SGE_JOB_ID" -a -n "`cat $EXP_DIR/SGE_JOB_ID`" -a -n "$(qstat -s r | grep `cat $EXP_DIR/SGE_JOB_ID` -)" ]
         then
-            echo "Skipping: \"$EXP_DIR\". Job not stopped. Please use the restart option!"
+            echo "Skipping: \"`basename $EXP_DIR`\". Job not stopped. Please use the restart option!"
             continue
         fi
         echo "EXPERIMENT: `basename $EXP_DIR`"
