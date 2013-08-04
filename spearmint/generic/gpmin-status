@@ -3,7 +3,7 @@
 ### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
-if  [ -z "${@:1}" ]
+if  [ -z "$1" ]
 then 
     args=`realpath '.'`
 else
