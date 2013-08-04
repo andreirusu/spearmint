@@ -3,6 +3,8 @@
 ### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
+args=`realpath  ${@:1}`
+
 ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 2 REQUIRED
 if [ "$#" -lt "1"    -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1"  ] 
 then
@@ -29,7 +31,7 @@ printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' ' VALUE' 'JOB_ID' ': COMPLE
 printf $ROW_PATTERN  '' '' '' '' '' ': PENDING' 
 echo $LINE
 
-for dir in ${*:1}
+for dir in $args
 do 
     if [ ! -d "$dir" -o ! -f "$dir/trace.csv" -o ! -f "$dir/SGE_JOB_ID"  ] 
     then
