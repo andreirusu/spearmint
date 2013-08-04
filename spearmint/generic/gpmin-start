@@ -18,5 +18,5 @@ DIRs must be valid gpmin experiment directories.
     exit
 fi
 
-gpmin_start $@
+gpmin_start `realpath $@`
 

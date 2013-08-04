@@ -1,9 +1,10 @@
-#!/bin/bash 
+#!/bin/bash -e 
 
 ### TODO: move to permanent location
 export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
 export SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
 export SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"optim.q"}
+export SPEARMINT_METHOD=${SPEARMINT_METHOD:-"GPEIOptChooser"}
 
 ### SPEARMINT DEFAULT OPTIONS
 export GPMIN_MAX_CONCURRENT=${GPMIN_MAX_CONCURRENT:-10}
@@ -14,9 +15,7 @@ export GPMIN_GRID_SEED=$RANDOM
 
 function real_dir_path 
 {
-    a=`dirname $(readlink -e "$1")`
-    b=`basename "$1"`
-    echo "$a"/"$b"
+    realpath $1
 }
 
 function print_gpmin_info
@@ -71,9 +70,9 @@ function gpmin_new
 
 function gpmin_start  
 {
-    for EXP_DIR in ${*:1}
+    for EXP_DIR in ${*:1}   
     do
-        EXP_DIR=`real_dir_path $EXP_DIR`
+        echo "$EXP_DIR"
         if [ ! -d "$EXP_DIR" ] 
         then
             echo "Skipping: \"$EXP_DIR\". Not a valid gpmin directory!"
@@ -100,9 +99,9 @@ function gpmin_start
         # get temporary file
         tfile="`mktemp`"
 
-        /dmt3/software/bin/crunch -q $SPEARMINT_QUEUE -o $EXP_DIR/gpmin.log -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=GPEIChooser --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR " > $tfile  
+        /dmt3/software/bin/crunch -q $SPEARMINT_QUEUE -o "$EXP_DIR/gpmin.log" -pe omp.pe $SPEARMINT_THREADS  -V -b y "./spearmint.py --method=$SPEARMINT_METHOD --max-concurrent=$GPMIN_MAX_CONCURRENT --max-finished-jobs=$GPMIN_MAX_JOBS --grid-seed=$GPMIN_GRID_SEED $EXP_DIR" > $tfile  
 
-        cat $tfile | tr -cd [0-9.] |  sed -r 's/^([^.]+).*$/\1/; s/^[^0-9]*([0-9]+).*$/\1/' > $EXP_DIR/SGE_JOB_ID
+        cat $tfile | tr -cd [0-9.] |  sed -r 's/^([^.]+).*$/\1/; s/^[^0-9]*([0-9]+).*$/\1/' > "$EXP_DIR/SGE_JOB_ID"
 
         cat $tfile
     done
@@ -111,18 +110,17 @@ function gpmin_start
 
 function gpmin_stop
 {
-    for EXP_DIR in ${*:1}
+    for EXP_DIR in ${@:1}
     do 
         echo $EXP_DIR
-        EXP_DIR=`real_dir_path $EXP_DIR`
         if [ ! -d "$EXP_DIR" -o ! -f  "$EXP_DIR/SGE_JOB_ID" ]
         then
-            echo "Skipping: \"$EXP_DIR\". Not a valid gpmin experiment!"
+            echo "Skipping: \"`basename $EXP_DIR`\". Not a valid gpmin experiment!"
             continue
         fi
         if [  -z "`cat $EXP_DIR/SGE_JOB_ID`" ]
         then
-            echo "Skipping: \"$EXP_DIR\". Already stopped!"
+            echo "Skipping: \"`basename $EXP_DIR`\". Already stopped!"
             continue
         fi
         echo "EXPERIMENT: `basename $EXP_DIR`"
