@@ -18,6 +18,35 @@ function real_dir_path
     realpath $1
 }
 
+function set_args
+{
+    if  [ -z "$1" ]
+    then 
+        args=(`realpath .`)
+    else
+        args=(`realpath ${@:1}`)
+    fi
+}
+
+
+function check_args
+{
+    ### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
+    if [ "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/SGE_JOB_ID" ] 
+    then
+        name=`basename $0`
+        echo "Usage: 
+        $name [DIR1] [DIR2] [DIR3] ...
+
+    DIRs must be valid gpmin experiment directories.
+    If no directory is given, then the current directory is considered.  
+
+    "
+        exit
+    fi
+}
+
+
 function print_gpmin_info
 {
     echo "Current experiment: "`basename $1`
@@ -70,7 +99,7 @@ function gpmin_new
 
 function gpmin_start  
 {
-    for EXP_DIR in ${*:1}   
+    for EXP_DIR in ${args[@]}   
     do
         if [ ! -d "$EXP_DIR" ] 
         then
@@ -110,7 +139,7 @@ function gpmin_start
 
 function gpmin_stop
 {
-    for EXP_DIR in ${@:1}
+    for EXP_DIR in ${args[@]}
     do 
         if [ ! -d "$EXP_DIR" -o ! -f  "$EXP_DIR/SGE_JOB_ID" ]
         then

@@ -3,28 +3,10 @@
 #### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
-if  [ -z "$1" ]
-then 
-    args='.'
-else
-    args=${@:1}
-fi
+check_args $@
 
-### CHECK THE NUMBER OF COMNMAND LINE ARUGMENTS; 1 REQUIRED
-if [ "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "${args[0]}" -o ! -f "${args[0]}/SGE_JOB_ID" ] 
-then
-    name=`basename $0`
-    echo "Usage: 
-    $name [DIR1] [DIR2] [DIR3] ...
+set_args $@
 
-DIRs must be valid gpmin experiment directories.
-If no directory is given, then the current directory is considered.  
-
-"
-    exit
-fi
-
-args=`realpath $args`
 
 ROW_PATTERN="%-42s%-10s%-11s%-11s%-8s%-20s\n"
 
@@ -36,7 +18,7 @@ printf $ROW_PATTERN  'EXPERIMENT' 'STATUS' '(hh:mm)' ' VALUE' 'JOB_ID' ': COMPLE
 printf $ROW_PATTERN  '' '' '' '' '' ': PENDING' 
 echo $LINE
 
-for dir in $args
+for dir in ${args[@]}
 do 
     if [ ! -d "$dir" -o ! -f "$dir/trace.csv" -o ! -f "$dir/SGE_JOB_ID"  ] 
     then
