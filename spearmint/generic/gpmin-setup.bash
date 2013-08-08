@@ -3,7 +3,7 @@
 ### TODO: move to permanent location
 export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
 export SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
-export SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"optim.q"}
+export SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"med.q"}
 export SPEARMINT_METHOD=${SPEARMINT_METHOD:-"GPEIOptChooser"}
 
 ### SPEARMINT DEFAULT OPTIONS
@@ -165,4 +165,5 @@ function gpmin_stop
         echo 'STOPPED'
     done
 }
+
 
