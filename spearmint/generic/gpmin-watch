@@ -3,9 +3,22 @@
 #### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
-check_args $@
-
 set_args $@
+
+### CHECK COMNMAND LINE ARUGMENTS
+if [ "$#" -gt "1" -o "$1" == "-h" -o  "$1" == "-help" -o  "$1" == "--help" -o ! -d "$1" -o ! -f "$1/SGE_JOB_ID" ] 
+then
+    name=`basename $0`
+    echo "Usage: 
+    $name [DIR] 
+
+DIR must be a valid gpmin experiment directory.
+If no directory is given, then the current directory is considered.  
+
+"
+    exit
+fi
+
 
 tail -n 100 -f $args/gpmin.log
 
