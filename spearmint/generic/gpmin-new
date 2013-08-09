@@ -28,7 +28,17 @@ Hence, the only restrictions are that COMMAND must write the minimization object
     exit
 fi
 
-args=`gpmin_new $@`
 
-print_gpmin_info $args
+CURRENT_DIR=$PWD
+
+for i in `seq 1 $GPMIN_RESTARTS` 
+do
+    cd $CURRENT_DIR
+    
+    args=`gpmin_new $@`
+
+    print_gpmin_info $args
+
+    set_env
+done
 
