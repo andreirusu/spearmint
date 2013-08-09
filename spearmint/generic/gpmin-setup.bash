@@ -83,7 +83,7 @@ function gpmin_new
     cp $SPEARMINT_HOME/generic/job.py $EXP_DIR
 
     ### SET THE COMMAND TO RUN
-    SPEARMINT_GPMIN_CMD=${@:2}' $@ ' 
+    SPEARMINT_GPMIN_CMD=`for str in ${@:2}; do if [ -f "$str" ] ; then realpath $str | tr '\n' ' ' ; fi;  done`' $@ '
 
     echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
     echo "" > $EXP_DIR/SGE_JOB_ID
