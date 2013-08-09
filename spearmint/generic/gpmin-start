@@ -3,6 +3,8 @@
 #### GENERIC SETUP
 . /dmt3/software/spearmint/spearmint/generic/gpmin-setup.bash
 
+set_env
+
 check_args $@
 
 set_args $@

@@ -1,17 +1,21 @@
 #!/bin/bash  
 
-### TODO: move to permanent location
-export SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
-export SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
-export SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"med.q"}
-export SPEARMINT_METHOD=${SPEARMINT_METHOD:-"GPEIOptChooser"}
 
-### SPEARMINT DEFAULT OPTIONS
-export GPMIN_MAX_CONCURRENT=${GPMIN_MAX_CONCURRENT:-10}
-export GPMIN_MAX_JOBS=${GPMIN_MAX_JOBS:-5000}
+function set_env
+{
+    ### TODO: move to permanent location
+    SPEARMINT_HOME=${SPEARMINT_HOME:-"/dmt3/software/spearmint/spearmint"}
+    SPEARMINT_THREADS=${SPEARMINT_THREADS:-2}
+    SPEARMINT_QUEUE=${SPEARMINT_QUEUE:-"med.q"}
+    SPEARMINT_METHOD=${SPEARMINT_METHOD:-"GPEIOptChooser"}
 
-export GPMIN_GRID_SEED=$RANDOM
+    ### SPEARMINT DEFAULT OPTIONS
+    GPMIN_MAX_CONCURRENT=${GPMIN_MAX_CONCURRENT:-10}
+    GPMIN_MAX_JOBS=${GPMIN_MAX_JOBS:-500}
+    GPMIN_RESTARTS=${GPMIN_RESTARTS:-5}
 
+    GPMIN_GRID_SEED=$RANDOM
+}
 
 function set_args
 {
