@@ -93,7 +93,7 @@ function gpmin_new
     echo $SPEARMINT_GPMIN_CMD > $EXP_DIR/job.sh
     echo "" > $EXP_DIR/SGE_JOB_ID
 
-    echo $EXP_DIR
+    realpath $EXP_DIR
 }
 
 
