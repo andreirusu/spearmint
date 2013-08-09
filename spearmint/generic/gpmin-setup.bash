@@ -79,8 +79,8 @@ function print_job_status
 
 function gpmin_new 
 {
-    DATE=$(date +".%Y.%m.%d.%H.%M.%S")
-    EXP_DIR=$PWD/gpmin$DATE'.'$GPMIN_GRID_SEED'.'$$ 
+    DATE=$(date +"%Y.%m.%d.%H.%M.%S")
+    EXP_DIR=$PWD/gpmin'.'$$'.'$GPMIN_GRID_SEED'.'$DATE 
     mkdir -p $EXP_DIR   
     # put together a working directory for spearmint 
     cp $1 $EXP_DIR/config.pb
