@@ -27,9 +27,9 @@ Hence, the only restrictions are that COMMAND must write the minimization object
     exit
 fi
 
-EXP_DIR=`gpmin_new $@`
+args=`gpmin_new $@`
 
-print_gpmin_info $EXP_DIR
+print_gpmin_info $args
 
-gpmin_start $EXP_DIR
+gpmin_start $args
 

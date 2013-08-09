@@ -13,11 +13,6 @@ export GPMIN_MAX_JOBS=${GPMIN_MAX_JOBS:-5000}
 export GPMIN_GRID_SEED=$RANDOM
 
 
-function real_dir_path 
-{
-    realpath $1
-}
-
 function set_args
 {
     if  [ -z "$1" ]
